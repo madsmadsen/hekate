@@ -5,3 +5,4 @@ packages/component/wasm/
 test-results/
 playwright-report/
 .DS_Store
+wordlists/hashes.tsv

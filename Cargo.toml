@@ -14,3 +14,10 @@ lto = true
 codegen-units = 1
 panic = "abort"
 strip = true
+
+# xtask reads gigabytes of text. These settings keep it fast in the dev profile too.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev.package.xtask]
+opt-level = 3
