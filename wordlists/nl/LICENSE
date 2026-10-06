@@ -1,0 +1,57 @@
+Word list license: nl (Nederlands)
+==================================
+
+The files words.txt and words-ascii.txt in this folder are made from the sources below.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+The license of each source applies to the words that come from that source.
+
+You may use this list for any purpose, including commercial use. You must give the credit of CREDITS.md, link the licenses, and say that the list was changed.
+
+Sources
+-------
+
+1. ParlaMint 4.1, ParlaMint-NL (Dutch parliament) (version: 4.1, role: frequency)
+   License: CC BY 4.0
+   License text: https://creativecommons.org/licenses/by/4.0/
+   Home page: https://www.clarin.si/repository/xmlui/handle/11356/1912
+
+2. ParlaMint 4.1, ParlaMint-BE (Belgian parliament, Dutch segments only) (version: 4.1, role: frequency)
+   License: CC BY 4.0
+   License text: https://creativecommons.org/licenses/by/4.0/
+   Home page: https://www.clarin.si/repository/xmlui/handle/11356/1912
+
+3. OpenTaal word list (Dutch) (version: 2.20.19, role: lexicon)
+   License: BSD-3-Clause
+   License text: https://raw.githubusercontent.com/OpenTaal/opentaal-wordlist/2.20.19/LICENSE.txt
+   Home page: https://github.com/OpenTaal/opentaal-wordlist
+
+   Notice of this source:
+
+   Copyright (c) 2020, OpenTaal
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+   * Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+
+   * Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+
+   * Neither the name of the copyright holder nor the names of its
+     contributors may be used to endorse or promote products derived from
+     this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+   FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+

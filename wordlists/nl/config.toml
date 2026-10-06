@@ -1,0 +1,123 @@
+# Dutch word list. See wordlists/README.md for the meaning of each key.
+code = "nl"
+name = "Nederlands"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+# Dutch letters. The lexicon decides which accented words are real words (for example "café", "geëist").
+alphabet = "a-zäëïöüéèêáíóú"
+
+# The lexicon (OpenTaal) holds lowercase common words, and capitalised names and proper nouns.
+# With "exact", only the lowercase entries can match. This leaves out names such as "Amsterdam".
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: Dutch removes accents and diaereses (ë -> e, ï -> i).
+[ascii]
+strip_accents = true
+
+# ---------------------------------------------------------------------------
+# Frequency source 1: ParlaMint 4.1, ParlaMint-NL (Dutch parliament, Tweede Kamer).
+# The tarball has the plain text of each sitting in ParlaMint-NL.txt/. Each line is
+# "utterance id <tab> text". The id has letters (`parlamint`, `tweedekamer`), but these
+# words are not in the lexicon, so they do not enter the list.
+# `member = ".txt"` also matches the small file ParlaMint-NL.TEI/00README.txt (542 bytes).
+# That adds each of its words once. This is too small to change a rank in a list of this size.
+# `min_count` drops words that occur fewer than 3 times. This keeps memory small.
+# The word at rank 50,000 occurs far more often.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "ParlaMint 4.1, ParlaMint-NL (Dutch parliament)"
+role = "frequency"
+format = "text"
+version = "4.1"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://www.clarin.si/repository/xmlui/handle/11356/1912"
+credit = "Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-NL. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0."
+archive = "tar"
+min_count = 3
+
+[[sources.files]]
+url = "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1912/ParlaMint-NL.tgz?sequence=21&isAllowed=y"
+member = ".txt"
+sha256 = "ee8061718a749952a25d9fae78a2d19aaa8fa6b205e3e2c87b26940a5c5be82f"
+
+# ---------------------------------------------------------------------------
+# Frequency source 2: ParlaMint 4.1, ParlaMint-BE (Belgian Chamber of Representatives).
+# The Belgian files mix Dutch and French, even inside one speech. The names of the files do not
+# tell the language, and the plain text files have no language marks. The TEI files mark the
+# language of each <seg>. So this source reads the TEI files and counts only
+# the <seg> elements with xml:lang="nl". The text format with `regex` does this (group 1 is the
+# text of the <seg>). The TEI root files and the schema files have no such <seg>, so they add nothing.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "ParlaMint 4.1, ParlaMint-BE (Belgian parliament, Dutch segments only)"
+role = "frequency"
+format = "text"
+version = "4.1"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://www.clarin.si/repository/xmlui/handle/11356/1912"
+credit = "Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-BE. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0. Only the Dutch segments were used."
+archive = "tar"
+strip_xml = true
+regex = '<seg [^>]*xml:lang="nl"[^>]*>(.*)</seg>'
+min_count = 3
+
+[[sources.files]]
+url = "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1912/ParlaMint-BE.tgz?sequence=3&isAllowed=y"
+member = ".xml"
+sha256 = "f4ff03c1ab74d1bf5fec6572749d741093abb6c719f51e07c8e0ad8cfb9387f4"
+
+# ---------------------------------------------------------------------------
+# Lexicon: OpenTaal word list (tag 2.20.19). OpenTaal offers a choice of the
+# Revised BSD License or CC BY 3.0. Hekate uses the BSD-3-Clause license (PRD 7.2).
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "OpenTaal word list (Dutch)"
+role = "lexicon"
+format = "wordlist"
+version = "2.20.19"
+license = "BSD-3-Clause"
+license_url = "https://raw.githubusercontent.com/OpenTaal/opentaal-wordlist/2.20.19/LICENSE.txt"
+url = "https://github.com/OpenTaal/opentaal-wordlist"
+credit = "OpenTaal Nederlandse woordenlijst, version 2.20.19. Copyright 2020 OpenTaal (Simon Brouwer, Sander van Geloven). https://opentaal.org"
+license_text = """
+Copyright (c) 2020, OpenTaal
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/OpenTaal/opentaal-wordlist/2.20.19/wordlist.txt"
+sha256 = "2e5128e8e7f9a5bdfc427c784c839986b0df1386cc53aef90ed2df71644f3987"

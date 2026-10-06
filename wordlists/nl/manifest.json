@@ -1,0 +1,49 @@
+{
+  "code": "nl",
+  "name": "Nederlands",
+  "words": 7776,
+  "ascii_words": 7776,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.92481250360578,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "ParlaMint 4.1, ParlaMint-NL (Dutch parliament)",
+      "role": "frequency",
+      "version": "4.1",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://www.clarin.si/repository/xmlui/handle/11356/1912",
+      "credit": "Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-NL. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0."
+    },
+    {
+      "name": "ParlaMint 4.1, ParlaMint-BE (Belgian parliament, Dutch segments only)",
+      "role": "frequency",
+      "version": "4.1",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://www.clarin.si/repository/xmlui/handle/11356/1912",
+      "credit": "Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-BE. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0. Only the Dutch segments were used."
+    },
+    {
+      "name": "OpenTaal word list (Dutch)",
+      "role": "lexicon",
+      "version": "2.20.19",
+      "license": "BSD-3-Clause",
+      "license_url": "https://raw.githubusercontent.com/OpenTaal/opentaal-wordlist/2.20.19/LICENSE.txt",
+      "url": "https://github.com/OpenTaal/opentaal-wordlist",
+      "credit": "OpenTaal Nederlandse woordenlijst, version 2.20.19. Copyright 2020 OpenTaal (Simon Brouwer, Sander van Geloven). https://opentaal.org"
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "f1a0a80130795aca73532c3fd9134c5918ee47442fdfde4636b9c1c32f46a486",
+    "words_ascii": "c16094678b2c6041c6c977be280f125f4a456a44d4197791dac11937d6d5d152"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}
