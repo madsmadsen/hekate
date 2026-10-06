@@ -1,0 +1,7 @@
+target/
+dist/
+node_modules/
+pnpm-lock.yaml
+wordlists/
+packages/component/wasm/
+docs/PRD.md

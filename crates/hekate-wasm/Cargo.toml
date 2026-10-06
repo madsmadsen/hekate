@@ -4,9 +4,14 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 description = "wasm-bindgen API of Hekate"
+build = "build.rs"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 hekate-core = { path = "../hekate-core" }
+rand_core = "0.9"
+getrandom = { version = "0.3", features = ["wasm_js"] }
+sha2 = { version = "0.10", default-features = false }
+wasm-bindgen = "=0.2.100"
