@@ -4,15 +4,15 @@ This file tells what the code does differently from `docs/PRD.md`, and what work
 
 ## What is done
 
-| Part | State |
-|---|---|
+| Part                 | State                                                                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `hekate-core` (Rust) | Done. Random choice without bias, word and character passwords, entropy, strength. 90%+ line coverage. Mutation testing finds no missed mutant. |
-| `hekate-wasm` | Done. Checks the SHA-256 hash of each word list. Native tests and `wasm-bindgen-test` tests pass (Node). |
-| Word lists | 15 lists built from the sources in PRD 7.2, each with 7,776 words and an ASCII list of 4,096 words or more. |
-| `xtask` | `wordlists`, `benchmark`, `wasm`, `dist`, `check-manifests`. The build is deterministic. |
-| Component | `<hekate-generator>` with Lit and Web Awesome 3.14.0. All Web Awesome elements get the `hekate-wa-` prefix. |
-| End-to-end tests | Playwright in Docker. Chromium, Firefox and WebKit pass. |
-| CI and release | Workflows, scripts, Docker development server. |
+| `hekate-wasm`        | Done. Checks the SHA-256 hash of each word list. Native tests and `wasm-bindgen-test` tests pass (Node).                                        |
+| Word lists           | 15 lists built from the sources in PRD 7.2, each with 7,776 words and an ASCII list of 4,096 words or more.                                     |
+| `xtask`              | `wordlists`, `benchmark`, `wasm`, `dist`, `check-manifests`. The build is deterministic.                                                        |
+| Component            | `<hekate-generator>` with Lit and Web Awesome 3.14.0. All Web Awesome elements get the `hekate-wa-` prefix.                                     |
+| End-to-end tests     | Playwright in Docker. Chromium, Firefox and WebKit pass.                                                                                        |
+| CI and release       | Workflows, scripts, Docker development server.                                                                                                  |
 
 ## Differences from the PRD
 
