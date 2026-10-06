@@ -48,6 +48,32 @@ export async function readPassword(page: Page, index = 0): Promise<string> {
     .evaluate((element) => element.textContent ?? "");
 }
 
+/**
+ * The text that the user has selected in the component. WebKit does not give text in a shadow
+ * root from `toString()`, so the helper uses `getComposedRanges()` when `toString()` is empty.
+ */
+export async function selectedText(page: Page, index = 0): Promise<string> {
+  return page
+    .locator("hekate-generator")
+    .nth(index)
+    .evaluate((host) => {
+      const selection = window.getSelection();
+      if (!selection) return "";
+      const direct = selection.toString();
+      if (direct) return direct;
+      const shadowRoots = [(host as HTMLElement).shadowRoot as ShadowRoot];
+      return selection
+        .getComposedRanges({ shadowRoots })
+        .map((composed) => {
+          const range = new Range();
+          range.setStart(composed.startContainer, composed.startOffset);
+          range.setEnd(composed.endContainer, composed.endOffset);
+          return range.toString();
+        })
+        .join("");
+    });
+}
+
 /** A locator for a part of the component, for example `part("language")`. */
 export function part(page: Page, name: string, index = 0): Locator {
   return page.locator("hekate-generator").nth(index).locator(`[part="${name}"]`);
