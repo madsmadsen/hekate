@@ -9,7 +9,7 @@ Hekate makes random passwords. It is a web component: one HTML tag, `<hekate-gen
 
 The code is in Rust (compiled to WebAssembly, "WASM") and TypeScript. The user interface uses [Web Awesome](https://webawesome.com) 3.14.0 and Lit.
 
-The full requirements are in the [product requirements document](docs/PRD.md).
+The full requirements are in the [product requirements document](docs/PRD.md). The [implementation notes](docs/implementation-notes.md) tell what differs from it and what work is still open.
 
 ## For users
 
