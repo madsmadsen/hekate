@@ -527,10 +527,8 @@ export class HekateGenerator extends LitElement {
     const field = this.renderRoot.querySelector("#password");
     const selection = field?.getRootNode() instanceof ShadowRoot ? window.getSelection() : null;
     if (!field || !selection) return;
-    const range = document.createRange();
-    range.selectNodeContents(field);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    // WebKit ignores addRange() with a range inside a shadow root, but not this call.
+    selection.selectAllChildren(field);
   }
 
   #retry(): void {
