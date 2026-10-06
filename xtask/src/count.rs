@@ -1184,9 +1184,15 @@ mod tests {
     #[test]
     fn xml_entities_are_decoded() {
         assert_eq!(unescape_xml("plain"), "plain");
-        assert_eq!(unescape_xml("a &amp; b &lt;c&gt; &quot;d&quot; &apos;"), "a & b <c> \"d\" '");
+        assert_eq!(
+            unescape_xml("a &amp; b &lt;c&gt; &quot;d&quot; &apos;"),
+            "a & b <c> \"d\" '"
+        );
         assert_eq!(unescape_xml("&#8217;&#x41;"), "\u{2019}A");
-        assert_eq!(unescape_xml("fish & chips &unknown; &#zz;"), "fish & chips &unknown; &#zz;");
+        assert_eq!(
+            unescape_xml("fish & chips &unknown; &#zz;"),
+            "fish & chips &unknown; &#zz;"
+        );
     }
 
     #[test]
