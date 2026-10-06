@@ -1,4 +1,3 @@
-<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -10,20 +9,20 @@
     <h2>Licenses that are used</h2>
     <ul>
       {{#each overview}}
-      <li><a href="#{{id}}">{{name}}</a> ({{count}} crates)</li>
+        <li><a href="#{{id}}">{{name}}</a> ({{count}} crates)</li>
       {{/each}}
     </ul>
     {{#each licenses}}
-    <section id="{{id}}">
-      <h3>{{name}}</h3>
-      <p>Used by:</p>
-      <ul>
-        {{#each used_by}}
-        <li>{{crate.name}} {{crate.version}}</li>
-        {{/each}}
-      </ul>
-      <pre>{{text}}</pre>
-    </section>
+      <section id="{{id}}">
+        <h3>{{name}}</h3>
+        <p>Used by:</p>
+        <ul>
+          {{#each used_by}}
+            <li>{{crate.name}} {{crate.version}}</li>
+          {{/each}}
+        </ul>
+        <pre>{{text}}</pre>
+      </section>
     {{/each}}
   </body>
 </html>

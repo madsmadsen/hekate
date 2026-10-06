@@ -119,7 +119,7 @@ test("TDD-6 TDD-1 the script skips a documentation change and stops a code chang
   assert.match(refactor.stdout, /refactor/);
 });
 
-test("TDD-1 the script passes when a new script test fails on the base and fails when it passes", () => {
+test("NFR-7 TDD-1 the script passes when a new script test fails on the base and fails when it passes", () => {
   const { root, git } = repoWith({ "README.md": "a\n" });
   mkdirSync(path.join(root, "scripts/test"), { recursive: true });
   writeFileSync(
