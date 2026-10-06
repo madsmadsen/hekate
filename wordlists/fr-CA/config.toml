@@ -1,0 +1,108 @@
+# Français (Canada) word list. See wordlists/README.md for the meaning of each key.
+code = "fr-CA"
+name = "Français (Canada)"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-zàâäçéèêëîïôöùûüÿœæ"
+
+# French words are lowercase, so the lexicon words must be lowercase too.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: French removes accents. ç becomes c, œ becomes oe, æ becomes ae.
+[ascii]
+strip_accents = true
+
+[ascii.map]
+"ç" = "c"
+"œ" = "oe"
+"æ" = "ae"
+
+# ---------------------------------------------------------------------------
+# Extra words: Québec words that the Hekate team wrote by hand (PRD 7.2 notes).
+# The list is not copied from OQLF, Usito, Wiktionary or any other dictionary.
+# It goes at the end of the list. A Québec reviewer must approve each word.
+# ---------------------------------------------------------------------------
+[extra]
+name = "Hekate Québec word list"
+version = "2026-10-07"
+license = "MIT"
+license_url = "https://opensource.org/license/mit"
+url = "https://github.com/madsmadsen/hekate"
+credit = "Québec French words written by the Hekate team. MIT license."
+
+# ---------------------------------------------------------------------------
+# Frequency source: Google Books Ngram v3, French corpus (fre), 1-grams.
+# The build counts only plain tokens (no part-of-speech tag), lowercases them,
+# and adds the counts of the years 1950 to 2019. Modern books give modern words.
+# `min_count` drops tokens that occur fewer than 200 times in one file. This keeps
+# memory small. It is far below the count of the word at rank 30,000.
+# The corpus holds many foreign and scanning-error tokens. The lexicon removes them.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Google Books Ngram v3, French (fre)"
+role = "frequency"
+format = "ngram-1gram-tsv"
+version = "20200217"
+license = "CC BY 3.0"
+license_url = "https://creativecommons.org/licenses/by/3.0/"
+url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
+credit = "Google Books Ngram Viewer data (French corpus fre, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+year_min = 1950
+year_max = 2019
+min_count = 200
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/fre/1-00000-of-00006.gz"
+sha256 = "c09240100c1d51c479faaf7ecd87163d2460f7f6d8c0244112b2727d96cae8e1"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/fre/1-00001-of-00006.gz"
+sha256 = "9dcda2040ee9e63333fc515db51dad958725afb9a71b70a707105564ed64eb3b"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/fre/1-00002-of-00006.gz"
+sha256 = "389f4b15e40a73e1ad57ae807eaec7f0a56725e8897dde533ed77f1dc30140ea"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/fre/1-00003-of-00006.gz"
+sha256 = "c6a38bbcfb00bdc4ac8cc8e22936d0835bfbb07f798e36dcf21a024dbddf3acd"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/fre/1-00004-of-00006.gz"
+sha256 = "978359563dceae0dbbe06457c07079eb0209471bef50f64fde2aa3b95534124c"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/fre/1-00005-of-00006.gz"
+sha256 = "2ccc18b4e6f0bebe62fa2d251265b663e09990eef3827620f445d32cceded64e"
+
+# ---------------------------------------------------------------------------
+# Lexicon: the LibreOffice French Hunspell dictionary (classic spelling, Grammalecte 7.7).
+# The README (README_dict_fr.txt) at the pinned commit says: "Licence : MPL : Mozilla Public License
+# version 2.0". The build expands its affix rules. A word must be in this lexicon to stay in the list.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "LibreOffice French dictionary (Hunspell fr, Grammalecte 7.7)"
+role = "lexicon"
+format = "hunspell"
+version = "commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4"
+license = "MPL-2.0"
+license_url = "https://www.mozilla.org/en-US/MPL/2.0/"
+url = "https://github.com/LibreOffice/dictionaries/tree/master/fr_FR"
+credit = "Dictionnaires orthographiques français 7.7, by Olivier R. and contributors (Grammalecte, https://grammalecte.net/). Licensed under MPL 2.0."
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/LibreOffice/dictionaries/32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4/fr_FR/dictionaries/fr.dic"
+part = "dic"
+sha256 = "b78a868e31dd6e373b6c3217969afb898a9acde828a5e7ef97308da42218c88c"
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/LibreOffice/dictionaries/32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4/fr_FR/dictionaries/fr.aff"
+part = "aff"
+sha256 = "c176610cd5dc4846806a65ddd029f422d87978bf58f224aa44222662a16a2de5"

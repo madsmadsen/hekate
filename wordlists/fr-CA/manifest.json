@@ -1,0 +1,49 @@
+{
+  "code": "fr-CA",
+  "name": "Français (Canada)",
+  "words": 7776,
+  "ascii_words": 7176,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.80896417491926,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "Google Books Ngram v3, French (fre)",
+      "role": "frequency",
+      "version": "20200217",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html",
+      "credit": "Google Books Ngram Viewer data (French corpus fre, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+    },
+    {
+      "name": "LibreOffice French dictionary (Hunspell fr, Grammalecte 7.7)",
+      "role": "lexicon",
+      "version": "commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4",
+      "license": "MPL-2.0",
+      "license_url": "https://www.mozilla.org/en-US/MPL/2.0/",
+      "url": "https://github.com/LibreOffice/dictionaries/tree/master/fr_FR",
+      "credit": "Dictionnaires orthographiques français 7.7, by Olivier R. and contributors (Grammalecte, https://grammalecte.net/). Licensed under MPL 2.0."
+    },
+    {
+      "name": "Hekate Québec word list",
+      "role": "extra",
+      "version": "2026-10-07",
+      "license": "MIT",
+      "license_url": "https://opensource.org/license/mit",
+      "url": "https://github.com/madsmadsen/hekate",
+      "credit": "Québec French words written by the Hekate team. MIT license."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "7a4fe20f3982e5a3d43623b9ad42cd2711ec31d2a2a0025686769ce100b3422d",
+    "words_ascii": "499819faa9838d1131a1ca0a0916144dcb92bd5b685dc9bbbd7cf5d23de6ad5e"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

@@ -1,0 +1,27 @@
+Word list license: fr-CA (Français (Canada))
+============================================
+
+The files words.txt and words-ascii.txt in this folder are made from the sources below.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+The license of each source applies to the words that come from that source.
+
+This list is a copyleft work. It keeps the license of LibreOffice French dictionary (Hunspell fr, Grammalecte 7.7) (MPL-2.0). Every changed copy of the list must use that license too.
+
+Sources
+-------
+
+1. Google Books Ngram v3, French (fre) (version: 20200217, role: frequency)
+   License: CC BY 3.0
+   License text: https://creativecommons.org/licenses/by/3.0/
+   Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+
+2. LibreOffice French dictionary (Hunspell fr, Grammalecte 7.7) (version: commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4, role: lexicon)
+   License: MPL-2.0
+   License text: https://www.mozilla.org/en-US/MPL/2.0/
+   Home page: https://github.com/LibreOffice/dictionaries/tree/master/fr_FR
+
+3. Hekate Québec word list (version: 2026-10-07, role: extra)
+   License: MIT
+   License text: https://opensource.org/license/mit
+   Home page: https://github.com/madsmadsen/hekate
+
