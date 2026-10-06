@@ -482,6 +482,9 @@ export class HekateGenerator extends LitElement {
 
   /** FR-3, FR-61, 8.3: a new warning goes to the live region. */
   #announceWarnings(): void {
+    // Before the start has finished, the message file of the UI language may not be loaded.
+    // A warning that is announced now would be in English (FR-70, SR-9).
+    if (!this.#generated) return;
     const now = this.#warnings;
     const active = (Object.keys(now) as Array<keyof typeof now>)
       .filter((key) => now[key])
