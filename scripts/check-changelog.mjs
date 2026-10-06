@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // FR-51: CHANGELOG.md must have an entry `## <version>` for the release.
 //
-// Usage: node scripts/check-changelog.mjs <version> [--file CHANGELOG.md]
+// Usage: node scripts/check-changelog.mjs <version> [--file CHANGELOG.md] [--print]
+//   --print  Print the text of the entry. The release workflow uses it as the release notes.
 
 import { existsSync, readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
@@ -25,9 +26,11 @@ export function changelogEntry(changelog, version) {
 function main() {
   const argv = process.argv.slice(2);
   let file = "CHANGELOG.md";
+  let print = false;
   let version;
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === "--file") file = argv[++i];
+    else if (argv[i] === "--print") print = true;
     else if (!version) version = argv[i];
     else throw new Error(`Unknown argument: ${argv[i]}`);
   }
@@ -50,7 +53,8 @@ function main() {
     console.error(`Changelog: the entry '## ${version}' is empty.`);
     process.exit(1);
   }
-  console.log(`Changelog: the entry for ${version} exists.`);
+  if (print) console.log(entry.join("\n").trim());
+  else console.log(`Changelog: the entry for ${version} exists.`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

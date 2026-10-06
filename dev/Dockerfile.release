@@ -1,0 +1,21 @@
+# Clean build container for releases (PRD SR-10).
+# scripts/release-build.sh builds it and runs `cargo xtask dist` inside.
+# The tool versions come from build arguments. Do not build it by hand.
+ARG RUST_VERSION
+FROM rust:${RUST_VERSION}-bookworm
+
+ARG NODE_VERSION
+ARG PNPM_VERSION
+ARG WASM_BINDGEN_VERSION=0.2.100
+
+# Node.js
+RUN arch="$(dpkg --print-architecture)" \
+ && case "$arch" in amd64) node_arch=x64 ;; arm64) node_arch=arm64 ;; *) exit 1 ;; esac \
+ && curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" \
+  | tar -xJ -C /usr/local --strip-components=1
+
+RUN npm install --global "pnpm@${PNPM_VERSION}"
+
+# The WASM target and the wasm-bindgen tool. The tool version must match Cargo.lock.
+RUN rustup target add wasm32-unknown-unknown \
+ && cargo install --locked wasm-bindgen-cli --version "${WASM_BINDGEN_VERSION}"
