@@ -1,0 +1,8 @@
+# Settings for `cargo nextest`. Only `cargo mutants` uses nextest (see .cargo/mutants.toml).
+#
+# A mutant can turn a retry loop into an endless loop. Nextest then ends the
+# test after 15 seconds and counts it as a failed test. Without this setting,
+# the endless loop looks like a time-out of the whole run, not like a failed test.
+# All normal tests of hekate-core take less than 2 seconds.
+[profile.default]
+slow-timeout = { period = "5s", terminate-after = 3 }

@@ -406,4 +406,69 @@ mod tests {
         assert!(WordList::parse("").is_err());
         assert_eq!(WordList::parse("a\n\nb\n").unwrap().len(), 2);
     }
+
+    #[test]
+    fn fr_1_get_returns_the_word_at_the_index() {
+        let l = WordList::parse("brave\nmaple\nriver\n").unwrap();
+        assert_eq!(l.get(0), "brave");
+        assert_eq!(l.get(2), "river");
+    }
+
+    #[test]
+    fn fr_1_is_empty_matches_the_word_count() {
+        let l = WordList::parse("brave\nmaple\n").unwrap();
+        assert!(!l.is_empty());
+        let empty = WordList { words: Vec::new() };
+        assert!(empty.is_empty());
+    }
+
+    /// A generator that returns fixed values. A test uses it to pick exact words and styles.
+    struct Fixed(Vec<u32>, usize);
+
+    impl RngCore for Fixed {
+        fn next_u32(&mut self) -> u32 {
+            let v = self.0[self.1];
+            self.1 += 1;
+            v
+        }
+        fn next_u64(&mut self) -> u64 {
+            rand_core::impls::next_u64_via_u32(self)
+        }
+        fn fill_bytes(&mut self, dest: &mut [u8]) {
+            rand_core::impls::fill_bytes_via_next(self, dest)
+        }
+    }
+
+    #[test]
+    fn fr_5_random_style_value_one_means_title_case() {
+        // The list has 8 words, so no value is rejected. Each word uses two values:
+        // the index of the word and the style bit (1 = title case, 0 = lower case).
+        let l = list(8);
+        let o = WordOptions {
+            words: 3,
+            separator: Separator::Dash,
+            capitalization: Capitalization::Random,
+            ..Default::default()
+        };
+        let mut rng = Fixed(vec![0, 1, 1, 0, 2, 1], 0);
+        let g = generate_words(&mut rng, &l, &o).unwrap();
+        assert_eq!(g.text, "Wa-wb-Wc");
+    }
+
+    #[test]
+    fn sr_3_error_messages_say_what_is_wrong() {
+        assert_eq!(
+            Error::WordListTooSmall.to_string(),
+            "word list is too small"
+        );
+        assert_eq!(
+            Error::WordCount.to_string(),
+            "number of words must be from 3 to 10"
+        );
+        assert_eq!(Error::Length.to_string(), "length must be from 8 to 64");
+        assert_eq!(
+            Error::NoCharset.to_string(),
+            "select at least one character set"
+        );
+    }
 }

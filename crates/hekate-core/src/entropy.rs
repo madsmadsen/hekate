@@ -71,4 +71,17 @@ mod tests {
         assert_eq!(Strength::Strong.as_str(), "strong");
         assert_eq!(Strength::VeryStrong.as_str(), "very-strong");
     }
+
+    #[test]
+    fn fr_21_generated_reports_the_crack_time_of_its_entropy() {
+        let g = crate::Generated {
+            text: String::new(),
+            kinds: String::new(),
+            entropy_bits: 41.0,
+        };
+        // 2^(41 - 1) / 10^10 seconds.
+        let expected = 2f64.powi(40) / 1e10;
+        assert!((g.crack_seconds() - expected).abs() < 1e-9 * expected);
+        assert_eq!(g.crack_seconds(), crack_seconds(41.0));
+    }
 }

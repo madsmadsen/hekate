@@ -1,0 +1,6 @@
+# Settings for `cargo mutants` (PRD TDD-4).
+# Equivalent mutants are in crates/hekate-core/mutants-equivalent.txt.
+# CI checks them with scripts/check-mutants.mjs.
+
+# Nextest ends a test that runs too long (see .config/nextest.toml).
+test_tool = "nextest"

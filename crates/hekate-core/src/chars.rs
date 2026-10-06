@@ -235,4 +235,16 @@ mod tests {
             assert_eq!(g.text.chars().count(), length);
         }
     }
+
+    #[test]
+    fn fr_20_character_entropy_with_an_odd_number_of_sets() {
+        // Appendix A.2: V is the sum over all subsets T of (-1)^|T| (C - size of T)^L.
+        // Sets of 26, 26, and 10 characters, length 8. Written out by hand:
+        let l = 8;
+        let v = 62f64.powi(l) - (36f64.powi(l) + 36f64.powi(l) + 52f64.powi(l))
+            + (26f64.powi(l) + 26f64.powi(l) + 10f64.powi(l));
+        assert!((set_entropy(&[26, 26, 10], 8) - v.log2()).abs() < 1e-9);
+        // One set: all L characters come from it.
+        assert!((set_entropy(&[26], 8) - 8.0 * 26f64.log2()).abs() < 1e-9);
+    }
 }
