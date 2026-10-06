@@ -1,0 +1,22 @@
+# Equivalent mutants of hekate-core (PRD TDD-4).
+#
+# A mutant is a small change that `cargo mutants` makes to the code. Each
+# mutant must make a test fail. A mutant is "equivalent" when the change does
+# not change what the code does, so no test can fail. Only these mutants may
+# stay in this file.
+#
+# Format: one mutant for each line.
+#
+#   <file>: <description of the mutant>  # <reason>
+#
+# - Copy <file> and <description> from `mutants.out/missed.txt`.
+# - Do not copy the line and column numbers. They change when the code changes.
+# - The reason is required. It must say why no test can tell the mutant from
+#   the original code.
+# - A line that starts with `#` is a comment.
+#
+# Example (not a real entry):
+#
+#   crates/hekate-core/src/entropy.rs: replace > with >= in log2_exact  # The values differ only at 0, which the caller rejects.
+#
+# `scripts/check-mutants.mjs` reads this file in CI.
