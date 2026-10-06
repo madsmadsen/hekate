@@ -1,0 +1,5 @@
+# TDD-2 allow list.
+# Put one requirement ID per line (for example FR-63) when its test is not
+# written yet. Add a comment with the reason after a `#`.
+# CI fails if this file names an ID that already has a test.
+# The list must be empty before a release.
