@@ -1,0 +1,40 @@
+{
+  "code": "pt-BR",
+  "name": "Português (Brasil)",
+  "words": 7776,
+  "ascii_words": 7694,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.909518114296615,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "ParlaIbero-BR: Parliamentary Speeches from Brazil (2003-2025), speeches from 2009 or later",
+      "role": "frequency",
+      "version": "2 (released 2026-09-07)",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://doi.org/10.7910/DVN/VTXNW3",
+      "credit": "ParlaIbero-BR: Parliamentary Speeches from Brazil (2003-2025), version 2. Rodrigues-Silveira, Rodrigo. Harvard Dataverse, DOI 10.7910/DVN/VTXNW3. Licensed under CC BY 4.0. The text of the speeches is from the Câmara dos Deputados (Brazil), which is the source of the text. Only speeches from 2009 or later were counted, and the words were filtered."
+    },
+    {
+      "name": "VERO pt_BR (Hunspell, LibreOffice dictionaries)",
+      "role": "lexicon",
+      "version": "commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4",
+      "license": "MPL",
+      "license_url": "https://www.mozilla.org/en-US/MPL/",
+      "url": "https://github.com/LibreOffice/dictionaries/tree/master/pt_BR",
+      "credit": "VERO, Verificador Ortográfico do LibreOffice (pt_BR). Copyright (C) 2006-2013 Raimundo Santos Moura and the Brazilian LibreOffice community. Used under the Mozilla Public License (the README offers a choice of LGPL version 3 or MPL)."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "65660f88a1aee6f4215edcddfc40cc4721bd5903c7e50c05359962d715a88866",
+    "words_ascii": "1238111fc52bf495e47aacb48ebfcbce1e038aec311fdb28a204a151d6b4010e"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

@@ -1,0 +1,84 @@
+# Portuguese (Brazil) word list. See wordlists/README.md for the meaning of each key.
+code = "pt-BR"
+name = "Português (Brasil)"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-záàâãçéêíóôõú"
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: remove accents and tildes (ã -> a, õ -> o), ç -> c.
+[ascii]
+strip_accents = true
+[ascii.map]
+"ç" = "c"
+
+# ---------------------------------------------------------------------------
+# Frequency source: ParlaIbero-BR, version 2 (2026-09-07), file BR_interventions.csv.
+# The file has one row for each intervention in the plenary of the Câmara dos
+# Deputados. Columns: id_session, id_int, legislature, legislative_session,
+# session_number, date, session_type, intervention_order, speaker_raw, id_dep,
+# speaker_name, sex, party, district, dm_speech, text.
+# The build counts the words of the `text` column. Two filters apply (PRD 7.2 notes):
+# only rows with dm_speech = 1 (real speech), and only speeches of 2009-01-01 or
+# later (the old spelling before the 1990 agreement is not used). The `date`
+# column is text like 2009-03-02, so it compares as text, and that is correct for this format.
+# `min_count` drops words with fewer than 20 occurrences. The word at rank 30,000 has a far higher count.
+# The download link redirects to a signed Amazon S3 link. The file is 1,527,460,901 bytes.
+# Dataverse gives the MD5 53bc8b497785f25942e59f1663fb109e for it, and it matched.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "ParlaIbero-BR: Parliamentary Speeches from Brazil (2003-2025), speeches from 2009 or later"
+role = "frequency"
+format = "csv-text"
+version = "2 (released 2026-09-07)"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://doi.org/10.7910/DVN/VTXNW3"
+credit = "ParlaIbero-BR: Parliamentary Speeches from Brazil (2003-2025), version 2. Rodrigues-Silveira, Rodrigo. Harvard Dataverse, DOI 10.7910/DVN/VTXNW3. Licensed under CC BY 4.0. The text of the speeches is from the Câmara dos Deputados (Brazil), which is the source of the text. Only speeches from 2009 or later were counted, and the words were filtered."
+delimiter = ","
+header = true
+text_column = "text"
+min_count = 20
+filters = [
+  { column = "dm_speech", equals = "1" },
+  { column = "date", min = "2009-01-01" },
+]
+
+[[sources.files]]
+url = "https://dataverse.harvard.edu/api/access/datafile/14215092"
+sha256 = "a2371495c5d2096f052e185e88ee02fd151e427d8b159bbcff213063c8775078"
+
+# ---------------------------------------------------------------------------
+# Lexicon: VERO pt_BR (Hunspell), from the LibreOffice dictionaries repository,
+# pinned to one commit. The VERO README (README_pt_BR.txt and README_en.txt) says
+# the dictionary is under the LGPL version 3 and the Mozilla Public License
+# ("licensed under the terms of the GNU Lesser General Public License version 3
+# (LGPLv3) ... and Mozilla Public License"). The README does not forbid a choice,
+# so, as the PRD asks, we use the MPL. The README does not name an MPL version.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "VERO pt_BR (Hunspell, LibreOffice dictionaries)"
+role = "lexicon"
+format = "hunspell"
+version = "commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4"
+license = "MPL"
+license_url = "https://www.mozilla.org/en-US/MPL/"
+url = "https://github.com/LibreOffice/dictionaries/tree/master/pt_BR"
+credit = "VERO, Verificador Ortográfico do LibreOffice (pt_BR). Copyright (C) 2006-2013 Raimundo Santos Moura and the Brazilian LibreOffice community. Used under the Mozilla Public License (the README offers a choice of LGPL version 3 or MPL)."
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/LibreOffice/dictionaries/32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4/pt_BR/pt_BR.dic"
+part = "dic"
+sha256 = "a38bfb26b68ece2834e79fe83e48d5792652970ace12db89d1b9674bf9933183"
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/LibreOffice/dictionaries/32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4/pt_BR/pt_BR.aff"
+part = "aff"
+sha256 = "21d8ad2a769a60e17e2b5ea4ef11d4d593a58b9e2a82d642ef82d6a4c5523865"

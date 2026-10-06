@@ -1,0 +1,22 @@
+Word list license: pt-BR (Português (Brasil))
+=============================================
+
+The files words.txt and words-ascii.txt in this folder are made from the sources below.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+The license of each source applies to the words that come from that source.
+
+This list is a copyleft work. It keeps the license of VERO pt_BR (Hunspell, LibreOffice dictionaries) (MPL). Every changed copy of the list must use that license too.
+
+Sources
+-------
+
+1. ParlaIbero-BR: Parliamentary Speeches from Brazil (2003-2025), speeches from 2009 or later (version: 2 (released 2026-09-07), role: frequency)
+   License: CC BY 4.0
+   License text: https://creativecommons.org/licenses/by/4.0/
+   Home page: https://doi.org/10.7910/DVN/VTXNW3
+
+2. VERO pt_BR (Hunspell, LibreOffice dictionaries) (version: commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4, role: lexicon)
+   License: MPL
+   License text: https://www.mozilla.org/en-US/MPL/
+   Home page: https://github.com/LibreOffice/dictionaries/tree/master/pt_BR
+
