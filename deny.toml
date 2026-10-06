@@ -1,0 +1,62 @@
+# Configuration for `cargo deny` (PRD sections 6 SR-10 and 11).
+# CI runs `cargo deny check`. It tests licenses, sources, and security advisories.
+#
+# This file is easy to extend. If a new dependency (for example in xtask) needs
+# a license that is not in the list below, do not just add the license. First
+# check that PRD section 11 allows it. Then add it with a comment.
+
+[graph]
+# Test only the targets that Hekate builds for.
+targets = [
+  "wasm32-unknown-unknown",
+  "x86_64-unknown-linux-gnu",
+  "aarch64-apple-darwin",
+  "x86_64-pc-windows-msvc",
+]
+
+[advisories]
+# A security advisory is a published report of a known problem.
+# cargo deny fails on every advisory. Add an ID to `ignore` only with a reason.
+ignore = []
+
+[licenses]
+# PRD section 11: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Zlib, Unicode-3.0, CC0.
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-3.0",
+  "CC0-1.0",
+]
+confidence-threshold = 0.9
+# The list may name licenses that no dependency uses now.
+unused-allowed-license = "allow"
+
+# These two licenses are not in the list of PRD section 11. Two dependencies of
+# the build tool `xtask` use them. Neither crate goes into dist/. Each exception
+# names one crate, so a new crate with the same license still fails.
+# Remove an exception when xtask stops using the crate (for example by turning
+# off the `bzip2` feature of the `zip` crate).
+exceptions = [
+  { crate = "libbz2-rs-sys", allow = ["bzip2-1.0.6"] },
+  { crate = "webpki-roots", allow = ["CDLA-Permissive-2.0"] },
+]
+
+[bans]
+# Two versions of one crate make the WASM module larger. A warning is enough.
+multiple-versions = "warn"
+# Workspace crates refer to each other by path and have no version number.
+# cargo deny sees this as a wildcard for crates that are not marked `publish = false`.
+# A warning is enough. Cargo.lock fixes every version.
+wildcards = "warn"
+allow-wildcard-paths = true
+
+[sources]
+# Only crates.io. No git dependencies.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

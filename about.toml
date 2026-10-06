@@ -1,0 +1,24 @@
+# Configuration for `cargo about`. It makes the license report of the Rust
+# dependencies (PRD section 11). The template is `about.hbs`.
+#
+# Keep `accepted` the same as `allow` in deny.toml. When xtask adds a
+# dependency with a new license, change both files.
+
+accepted = [
+  "MIT",
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-3.0",
+  "CC0-1.0",
+  # Exceptions of deny.toml. They apply to xtask only, which is not in dist/.
+  "bzip2-1.0.6",
+  "CDLA-Permissive-2.0",
+]
+
+# The report covers only the code that goes into the WASM module.
+targets = ["wasm32-unknown-unknown"]
+ignore-dev-dependencies = true
+ignore-build-dependencies = true
