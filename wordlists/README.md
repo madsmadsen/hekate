@@ -128,6 +128,8 @@ Options of the formats:
 | `strip_xml` | `text` | Remove XML tags before counting |
 | `regex` | `line-regex`, `text` | `line-regex`: group 1 is the word. `text`: the build counts only the words in group 1 of each match, and it decodes XML entities. Use it to read one language from TEI files, for example `<seg [^>]*xml:lang="nl"[^>]*>(.*)</seg>` with `strip_xml` |
 | `strip_flags` | `wordlist` | Remove everything from `/` on |
+| `latin1` | all formats except `hunspell` | `true` if the file is ISO-8859-1 text, not UTF-8. The build converts it while it reads. `hunspell` reads the `SET` line of the `.aff` file instead |
+| `whitespace` | `freq-table` | `true`: fields are separated by runs of spaces or tabs, and leading spaces do not count. The columns must be numbers. No header row and no filters. Use it for the NB N-gram files (`   75045781 og`) |
 | `language_qid`, `lang_code`, `exclude_categories` | `wikidata-lexemes` | Language item (for example `Q188`), language code of the words (`de`), item numbers of categories to leave out (for example proper nouns, `Q147276`) |
 
 ### `[[sources.files]]`

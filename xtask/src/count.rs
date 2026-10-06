@@ -123,6 +123,10 @@ struct CountParams<'a> {
     strip_xml: bool,
     #[serde(skip_serializing_if = "is_false")]
     skip_capitalized: bool,
+    #[serde(skip_serializing_if = "is_false")]
+    latin1: bool,
+    #[serde(skip_serializing_if = "is_false")]
+    whitespace: bool,
     regex: &'a Option<String>,
     strip_flags: bool,
     language_qid: &'a Option<String>,
@@ -151,6 +155,8 @@ fn params_digest(src: &Source) -> String {
         filters: &src.filters,
         strip_xml: src.strip_xml,
         skip_capitalized: src.skip_capitalized,
+        latin1: src.latin1,
+        whitespace: src.whitespace,
         regex: &src.regex,
         strip_flags: src.strip_flags,
         language_qid: &src.language_qid,
@@ -337,6 +343,57 @@ fn strip_xml_tags(line: &str) -> String {
     out
 }
 
+/// Turns ISO-8859-1 bytes into UTF-8 bytes while a reader reads.
+struct Latin1Reader<'a> {
+    inner: &'a mut dyn Read,
+    out: Vec<u8>,
+    pos: usize,
+}
+
+impl Read for Latin1Reader<'_> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        if self.pos >= self.out.len() {
+            let mut chunk = [0u8; 8192];
+            let n = self.inner.read(&mut chunk)?;
+            if n == 0 {
+                return Ok(0);
+            }
+            self.out.clear();
+            self.pos = 0;
+            for &b in &chunk[..n] {
+                if b < 0x80 {
+                    self.out.push(b);
+                } else {
+                    self.out.push(0xC0 | (b >> 6));
+                    self.out.push(0x80 | (b & 0x3F));
+                }
+            }
+        }
+        let n = buf.len().min(self.out.len() - self.pos);
+        buf[..n].copy_from_slice(&self.out[self.pos..self.pos + n]);
+        self.pos += n;
+        Ok(n)
+    }
+}
+
+/// Run `f` on the file stream. With `latin1`, `f` reads UTF-8 that the build made from Latin-1.
+fn with_encoding<T>(
+    src: &Source,
+    r: &mut dyn Read,
+    f: impl FnOnce(&mut dyn Read) -> Result<T>,
+) -> Result<T> {
+    if src.latin1 {
+        let mut conv = Latin1Reader {
+            inner: r,
+            out: Vec::new(),
+            pos: 0,
+        };
+        f(&mut conv)
+    } else {
+        f(r)
+    }
+}
+
 fn read_lines(reader: &mut dyn Read, f: &mut dyn FnMut(&str) -> Result<()>) -> Result<()> {
     let mut r = BufReader::with_capacity(256 * 1024, reader);
     let mut buf = Vec::new();
@@ -498,7 +555,47 @@ fn parse_u64(bytes: &[u8]) -> Option<u64> {
     Some(n)
 }
 
+/// `freq-table` with `whitespace`: fields are separated by runs of spaces or tabs, and leading
+/// spaces do not count. Needs number columns. Rows with too few fields are skipped.
+fn count_freq_table_whitespace(
+    src: &Source,
+    reader: &mut dyn Read,
+    counts: &mut Counts,
+) -> Result<()> {
+    let (Some(Column::Index(wc)), count_col) = (&src.word_column, &src.count_column) else {
+        bail!("whitespace tables need a number for word_column");
+    };
+    let cc = match count_col {
+        Some(Column::Index(c)) => Some(*c),
+        Some(Column::Name(_)) => bail!("whitespace tables need a number for count_column"),
+        None => None,
+    };
+    if src.header || !src.filters.is_empty() {
+        bail!("whitespace tables have no header row and no filters");
+    }
+    read_lines(reader, &mut |line| {
+        let fields: Vec<&str> = line.split_whitespace().collect();
+        let Some(word) = fields.get(*wc).copied().and_then(fold_token) else {
+            return Ok(());
+        };
+        let n = match cc {
+            Some(c) => fields
+                .get(c)
+                .and_then(|v| v.parse::<f64>().ok())
+                .map_or(0, |v| v as u64),
+            None => 1,
+        };
+        if n > 0 {
+            counts.add(&word, n);
+        }
+        Ok(())
+    })
+}
+
 fn count_freq_table(src: &Source, reader: &mut dyn Read, counts: &mut Counts) -> Result<()> {
+    if src.whitespace {
+        return count_freq_table_whitespace(src, reader, counts);
+    }
     let word_col = src.word_column.as_ref().expect("validated");
     let mut wanted = vec![word_col];
     if let Some(c) = &src.count_column {
@@ -542,7 +639,59 @@ fn count_ranked(reader: &mut dyn Read, counts: &mut Counts) -> Result<()> {
     })
 }
 
+/// Replace the XML entities in a piece of text: `&lt; &gt; &quot; &apos; &amp;` and `&#N;` / `&#xH;`.
+fn unescape_xml(text: &str) -> std::borrow::Cow<'_, str> {
+    if !text.contains('&') {
+        return std::borrow::Cow::Borrowed(text);
+    }
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find('&') {
+        out.push_str(&rest[..at]);
+        rest = &rest[at..];
+        let decoded = rest.find(';').filter(|&end| end <= 10).and_then(|end| {
+            let name = &rest[1..end];
+            let c = match name {
+                "lt" => '<',
+                "gt" => '>',
+                "quot" => '"',
+                "apos" => '\'',
+                "amp" => '&',
+                _ => {
+                    let num = name.strip_prefix('#')?;
+                    let code = match num.strip_prefix(['x', 'X']) {
+                        Some(hex) => u32::from_str_radix(hex, 16).ok()?,
+                        None => num.parse().ok()?,
+                    };
+                    char::from_u32(code)?
+                }
+            };
+            Some((c, end + 1))
+        });
+        match decoded {
+            Some((c, len)) => {
+                out.push(c);
+                rest = &rest[len..];
+            }
+            None => {
+                out.push('&');
+                rest = &rest[1..];
+            }
+        }
+    }
+    out.push_str(rest);
+    std::borrow::Cow::Owned(out)
+}
+
+/// `text`: count the words of each line. With `regex`, count only the words in group 1 of each
+/// match, and decode XML entities (for TEI files, for example `<seg ... xml:lang="nl">(.*)</seg>`).
 fn count_text(src: &Source, reader: &mut dyn Read, counts: &mut Counts) -> Result<()> {
+    let re = src
+        .regex
+        .as_deref()
+        .map(regex::Regex::new)
+        .transpose()
+        .context(|| "bad regex".to_string())?;
     read_lines(reader, &mut |line| {
         if let Some(re) = &re {
             for cap in re.captures_iter(line) {
@@ -611,7 +760,7 @@ fn count_file(src: &Source, idx: usize, ctx: &Ctx) -> Result<(Counts, Vec<HashUp
             crate::log!("counting {} ...", file.describe());
             let mut counts = Counts::default();
             let sha = process_file(file, src.archive, &ctx.base_dir, &mut |_, r| {
-                count_stream(src, r, &mut counts)
+                with_encoding(src, r, |r| count_stream(src, r, &mut counts))
             })?;
             if let Some(m) = src.min_count {
                 counts.prune(m);
@@ -624,59 +773,7 @@ fn count_file(src: &Source, idx: usize, ctx: &Ctx) -> Result<(Counts, Vec<HashUp
 type FileResult = Result<(Counts, Vec<HashUpdate>)>;
 
 /// Count all files of a frequency source and add the counts.
-/// Replace the XML entities in a piece of text: `&lt; &gt; &quot; &apos; &amp;` and `&#N;` / `&#xH;`.
-fn unescape_xml(text: &str) -> std::borrow::Cow<'_, str> {
-    if !text.contains('&') {
-        return std::borrow::Cow::Borrowed(text);
-    }
-    let mut out = String::with_capacity(text.len());
-    let mut rest = text;
-    while let Some(at) = rest.find('&') {
-        out.push_str(&rest[..at]);
-        rest = &rest[at..];
-        let decoded = rest.find(';').filter(|&end| end <= 10).and_then(|end| {
-            let name = &rest[1..end];
-            let c = match name {
-                "lt" => '<',
-                "gt" => '>',
-                "quot" => '"',
-                "apos" => '\'',
-                "amp" => '&',
-                _ => {
-                    let num = name.strip_prefix('#')?;
-                    let code = match num.strip_prefix(['x', 'X']) {
-                        Some(hex) => u32::from_str_radix(hex, 16).ok()?,
-                        None => num.parse().ok()?,
-                    };
-                    char::from_u32(code)?
-                }
-            };
-            Some((c, end + 1))
-        });
-        match decoded {
-            Some((c, len)) => {
-                out.push(c);
-                rest = &rest[len..];
-            }
-            None => {
-                out.push('&');
-                rest = &rest[1..];
-            }
-        }
-    }
-    out.push_str(rest);
-    std::borrow::Cow::Owned(out)
-}
-
-/// `text`: count the words of each line. With `regex`, count only the words in group 1 of each
-/// match, and decode XML entities (for TEI files, for example `<seg ... xml:lang="nl">(.*)</seg>`).
 pub fn load_frequency(src: &Source, ctx: &Ctx) -> Result<(Counts, Vec<HashUpdate>)> {
-    let re = src
-        .regex
-        .as_deref()
-        .map(regex::Regex::new)
-        .transpose()
-        .context(|| "bad regex".to_string())?;
     let n = src.files.len();
     let results: Vec<Mutex<Option<FileResult>>> = (0..n).map(|_| Mutex::new(None)).collect();
     let next = AtomicUsize::new(0);
@@ -842,7 +939,7 @@ pub fn load_lexicon(src: &Source, ctx: &Ctx) -> Result<(Vec<String>, Vec<HashUpd
             crate::log!("reading {} ...", file.describe());
             let mut set = BTreeSet::new();
             let sha = process_file(file, src.archive, &ctx.base_dir, &mut |_, r| {
-                lexicon_from_stream(src, r, &mut set)
+                with_encoding(src, r, |r| lexicon_from_stream(src, r, &mut set))
             })?;
             Ok((set.into_iter().collect::<Vec<_>>(), vec![sha]))
         })?;
@@ -886,6 +983,8 @@ mod tests {
             filters: vec![],
             strip_xml: false,
             skip_capitalized: false,
+            latin1: false,
+            whitespace: false,
             regex: None,
             strip_flags: false,
             language_qid: None,
@@ -1053,6 +1152,59 @@ mod tests {
             ["he", "said", "yes"]
         );
     }
+
+    #[test]
+    fn whitespace_tables_ignore_leading_spaces() {
+        let mut s = src(Format::FreqTable, Role::Frequency);
+        s.whitespace = true;
+        s.word_column = Some(Column::Index(1));
+        s.count_column = Some(Column::Index(0));
+        let mut counts = Counts::default();
+        let text: &[u8] = b"  500 hus\n   20 Hus\n3 <s>\n7\n";
+        count_stream(&s, &mut &*text, &mut counts).unwrap();
+        assert_eq!(counts.words["hus"], 520);
+        assert_eq!(counts.words.len(), 1);
+    }
+
+    #[test]
+    fn latin1_files_are_read_as_utf8() {
+        let mut s = src(Format::FreqTable, Role::Frequency);
+        s.latin1 = true;
+        s.delimiter = Some(" ".into());
+        s.word_column = Some(Column::Index(1));
+        s.count_column = Some(Column::Index(0));
+        let bytes: &[u8] = b"5 f\xf8r\n3 \xe5r\n2 hus\n";
+        let mut counts = Counts::default();
+        with_encoding(&s, &mut &*bytes, |r| count_stream(&s, r, &mut counts)).unwrap();
+        assert_eq!(counts.words["før"], 5);
+        assert_eq!(counts.words["år"], 3);
+        assert_eq!(counts.words["hus"], 2);
+    }
+
+    #[test]
+    fn xml_entities_are_decoded() {
+        assert_eq!(unescape_xml("plain"), "plain");
+        assert_eq!(unescape_xml("a &amp; b &lt;c&gt; &quot;d&quot; &apos;"), "a & b <c> \"d\" '");
+        assert_eq!(unescape_xml("&#8217;&#x41;"), "\u{2019}A");
+        assert_eq!(unescape_xml("fish & chips &unknown; &#zz;"), "fish & chips &unknown; &#zz;");
+    }
+
+    #[test]
+    fn text_with_regex_counts_only_the_words_of_group_one() {
+        let mut s = src(Format::Text, Role::Frequency);
+        s.regex = Some(r#"<seg [^>]*xml:lang="nl"[^>]*>(.*)</seg>"#.into());
+        s.strip_xml = true;
+        let data = concat!(
+            "<seg xml:id=\"a\" xml:lang=\"nl\">Hond en <hi>kat</hi> &amp; muis</seg>\n",
+            "<seg xml:id=\"b\" xml:lang=\"fr\">chien et chat</seg>\n",
+            "<u xml:lang=\"nl\">buiten</u>\n",
+        );
+        let mut c = Counts::default();
+        count_text(&s, &mut data.as_bytes(), &mut c).unwrap();
+        let mut words: Vec<&str> = c.words.keys().map(|w| w.as_ref()).collect();
+        words.sort_unstable();
+        assert_eq!(words, ["en", "hond", "kat", "muis"]);
+    }
 }
 
 #[cfg(test)]
@@ -1136,28 +1288,3 @@ mod cache_tests {
         assert_ne!(a, params_digest(&s));
     }
 }
-
-    #[test]
-    fn xml_entities_are_decoded() {
-        assert_eq!(unescape_xml("plain"), "plain");
-        assert_eq!(unescape_xml("a &amp; b &lt;c&gt; &quot;d&quot; &apos;"), "a & b <c> \"d\" '");
-        assert_eq!(unescape_xml("&#8217;&#x41;"), "\u{2019}A");
-        assert_eq!(unescape_xml("fish & chips &unknown; &#zz;"), "fish & chips &unknown; &#zz;");
-    }
-
-    #[test]
-    fn text_with_regex_counts_only_the_words_of_group_one() {
-        let mut s = src(Format::Text, Role::Frequency);
-        s.regex = Some(r#"<seg [^>]*xml:lang="nl"[^>]*>(.*)</seg>"#.into());
-        s.strip_xml = true;
-        let data = concat!(
-            "<seg xml:id=\"a\" xml:lang=\"nl\">Hond en <hi>kat</hi> &amp; muis</seg>\n",
-            "<seg xml:id=\"b\" xml:lang=\"fr\">chien et chat</seg>\n",
-            "<u xml:lang=\"nl\">buiten</u>\n",
-        );
-        let mut c = Counts::default();
-        count_text(&s, &mut data.as_bytes(), &mut c).unwrap();
-        let mut words: Vec<&str> = c.words.keys().map(|w| w.as_ref()).collect();
-        words.sort_unstable();
-        assert_eq!(words, ["en", "hond", "kat", "muis"]);
-    }

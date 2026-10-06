@@ -295,6 +295,14 @@ pub struct Source {
     /// `wordlist`: remove everything from `/` on (Hunspell style flags).
     #[serde(default)]
     pub strip_flags: bool,
+    /// The file is ISO-8859-1 (Latin-1) text, not UTF-8. The build converts it while it reads.
+    /// Not for `hunspell`: that format reads the `SET` line of the `.aff` file.
+    #[serde(default)]
+    pub latin1: bool,
+    /// `freq-table`: fields are separated by runs of spaces or tabs, and leading spaces do not count.
+    /// The columns must be numbers. No header row, no filters.
+    #[serde(default)]
+    pub whitespace: bool,
     /// `wikidata-lexemes`: item number of the language, for example `Q188`.
     #[serde(default)]
     pub language_qid: Option<String>,
@@ -447,6 +455,14 @@ impl Source {
                     bail!("csv-text needs text_column");
                 }
             }
+            Format::Text => {
+                if let Some(re) = &self.regex {
+                    let re = regex::Regex::new(re).context(|| "bad regex".to_string())?;
+                    if re.captures_len() < 2 {
+                        bail!("regex needs a capture group for the text");
+                    }
+                }
+            }
             Format::LineRegex => {
                 let Some(re) = &self.regex else {
                     bail!("line-regex needs regex");
@@ -457,14 +473,6 @@ impl Source {
                 }
             }
             Format::WikidataLexemes if self.language_qid.is_none() || self.lang_code.is_none() => {
-            Format::Text => {
-                if let Some(re) = &self.regex {
-                    let re = regex::Regex::new(re).context(|| "bad regex".to_string())?;
-                    if re.captures_len() < 2 {
-                        bail!("regex needs a capture group for the text");
-                    }
-                }
-            }
                 bail!("wikidata-lexemes needs language_qid and lang_code");
             }
             _ => {}
