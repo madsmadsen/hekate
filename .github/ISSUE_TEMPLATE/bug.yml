@@ -1,0 +1,40 @@
+name: Bug
+description: Something does not work as the README or the PRD says.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. Do not paste a real password here.
+        For a security problem, use a private security advisory. See SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Hekate version
+      description: The version is in the script URL, for example 2026.10.06-1432.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: Firefox 140 on Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to repeat the problem
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect, and what happened?
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: Messages in the browser console
+      render: text

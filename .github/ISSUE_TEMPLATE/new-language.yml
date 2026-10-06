@@ -1,0 +1,47 @@
+name: New language
+description: Ask for a new word list language, or offer to add one.
+labels: [language]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read "How to add a language" in CONTRIBUTING.md first.
+        A new language needs a frequency source and a lexicon with allowed licenses (PRD section 7.2).
+        It also needs a review by a native speaker.
+  - type: input
+    id: language
+    attributes:
+      label: Language and variant
+      placeholder: Spanish (Mexico)
+    validations:
+      required: true
+  - type: input
+    id: code
+    attributes:
+      label: Language code
+      placeholder: es-MX
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Name the frequency source and the lexicon. Give the link and the license of each.
+    validations:
+      required: true
+  - type: dropdown
+    id: reviewer
+    attributes:
+      label: Native-speaker review
+      options:
+        - I am a native speaker and I can review the list.
+        - I know a reviewer.
+        - I need help to find a reviewer.
+    validations:
+      required: true
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Pull request
+      options:
+        - label: I plan to open a pull request.

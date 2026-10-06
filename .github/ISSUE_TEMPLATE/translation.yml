@@ -1,0 +1,39 @@
+name: Translation
+description: Add or fix a translation of the user interface.
+labels: [translation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read "How to add a translation" in CONTRIBUTING.md first.
+        A translation is one file, `packages/component/locales/<locale>.json`. You do not change code.
+  - type: input
+    id: locale
+    attributes:
+      label: Locale code
+      placeholder: sv
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is this about?
+      options:
+        - A new translation
+        - A mistake in a translation
+        - A text that is too long for the layout
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Give the message key, the current text, and the text you suggest.
+    validations:
+      required: true
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Pull request
+      options:
+        - label: I plan to open a pull request.

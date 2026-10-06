@@ -1,0 +1,44 @@
+name: Word list problem
+description: A word list has a rude, unknown, wrong, or missing word.
+labels: [word-list]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not edit `words.txt` by hand. The build makes it from the config and the block list.
+        See "How to add a language" in CONTRIBUTING.md.
+  - type: input
+    id: language
+    attributes:
+      label: Language code
+      placeholder: de
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of problem
+      options:
+        - A rude or offensive word
+        - A word that is not a word of this language
+        - A spelling error
+        - A name or a very rare word
+        - A word of the other variant
+        - A grammar word (such as "the" or "of")
+        - A word that is in the list twice, or an ASCII list problem
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: words
+    attributes:
+      label: The words
+      description: One word for each line. Add the line number in `words.txt` if you know it.
+    validations:
+      required: true
+  - type: checkboxes
+    id: native
+    attributes:
+      label: Native speaker
+      options:
+        - label: I am a native speaker of this language.
