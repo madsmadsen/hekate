@@ -1,0 +1,83 @@
+{
+  "code": "en-US",
+  "rows": [
+    {
+      "s": 0,
+      "r": 20000,
+      "list_size": 19971,
+      "avg_length": 6.707
+    },
+    {
+      "s": 0,
+      "r": 30000,
+      "list_size": 29963,
+      "avg_length": 6.833
+    },
+    {
+      "s": 0,
+      "r": 50000,
+      "list_size": 49954,
+      "avg_length": 7.064
+    },
+    {
+      "s": 500,
+      "r": 20000,
+      "list_size": 19471,
+      "avg_length": 6.741
+    },
+    {
+      "s": 500,
+      "r": 30000,
+      "list_size": 29463,
+      "avg_length": 6.858
+    },
+    {
+      "s": 500,
+      "r": 50000,
+      "list_size": 49454,
+      "avg_length": 7.081
+    },
+    {
+      "s": 1000,
+      "r": 20000,
+      "list_size": 18971,
+      "avg_length": 6.759
+    },
+    {
+      "s": 1000,
+      "r": 30000,
+      "list_size": 28963,
+      "avg_length": 6.871
+    },
+    {
+      "s": 1000,
+      "r": 50000,
+      "list_size": 48954,
+      "avg_length": 7.092
+    },
+    {
+      "s": 2000,
+      "r": 20000,
+      "list_size": 17972,
+      "avg_length": 6.783
+    },
+    {
+      "s": 2000,
+      "r": 30000,
+      "list_size": 27964,
+      "avg_length": 6.891
+    },
+    {
+      "s": 2000,
+      "r": 50000,
+      "list_size": 47955,
+      "avg_length": 7.108
+    }
+  ],
+  "selection": {
+    "s": 1000,
+    "r": 30000,
+    "ratings_used": false,
+    "note": "No ratings file. Using the proposed S = 1000 and R = 30000. List size there: 28963."
+  }
+}

@@ -1,0 +1,33 @@
+Word list license: en-US (English (US))
+=======================================
+
+The files words.txt and words-ascii.txt in this folder are made from the sources below.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+The license of each source applies to the words that come from that source.
+
+You may use this list for any purpose, including commercial use. You must give the credit of CREDITS.md, link the licenses, and say that the list was changed.
+
+Sources
+-------
+
+1. Google Books Ngram v3, American English (eng-us) (version: 20200217, role: frequency)
+   License: CC BY 3.0
+   License text: https://creativecommons.org/licenses/by/3.0/
+   Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+
+2. SCOWL / ESDB (Hunspell en_US, size 60, American spelling) (version: 2026.02.25 (tag rel-2026.02.25), role: lexicon)
+   License: MIT-style permission
+   License text: https://github.com/en-wl/wordlist/blob/rel-2026.02.25/Copyright
+   Home page: https://github.com/en-wl/wordlist
+
+   Notice of this source:
+
+   Copyright 2000-2026 by Kevin Atkinson
+
+   Permission to use, copy, modify, distribute, and sell any part of SCOWLv2, or
+   word lists created from it, is hereby granted without fee, provided that the
+   above copyright notice appears in all copies and that both the above
+   copyright notice and this notice appear in supporting documentation.  Kevin
+   Atkinson makes no representations about the suitability of this database for
+   any purpose.  It is provided "as is" without express or implied warranty.
+

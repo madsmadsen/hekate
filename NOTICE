@@ -1,0 +1,20 @@
+Hekate word list credits
+========================
+
+The code of Hekate uses the MIT license (see LICENSE).
+The word lists in wordlists/ are made from the sources below.
+Each list has its own LICENSE and CREDITS.md file.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+
+* Google Books Ngram v3, American English (eng-us) (version: 20200217)
+  License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+  Credit: Google Books Ngram Viewer data (American English corpus eng-us, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011.
+  Used for: en-US
+
+* SCOWL / ESDB (Hunspell en_US, size 60, American spelling) (version: 2026.02.25 (tag rel-2026.02.25))
+  License: MIT-style permission (https://github.com/en-wl/wordlist/blob/rel-2026.02.25/Copyright)
+  Home page: https://github.com/en-wl/wordlist
+  Credit: SCOWL and Friends. Copyright 2000-2026 by Kevin Atkinson. https://wordlist.aspell.net
+  Used for: en-US
+

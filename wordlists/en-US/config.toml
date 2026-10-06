@@ -1,0 +1,135 @@
+# English (US) word list. See wordlists/README.md for the meaning of each key.
+code = "en-US"
+name = "English (US)"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-z"
+
+# English words are lowercase, so the lexicon words must be lowercase too.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: English removes accents.
+[ascii]
+strip_accents = true
+
+# ---------------------------------------------------------------------------
+# Frequency source: Google Books Ngram v3, American English (eng-us), 1-grams.
+# The build counts only plain tokens (no part-of-speech tag), lowercases them,
+# and adds the counts of the years 1950 to 2019. Modern books give modern words.
+# `min_count` drops tokens that occur fewer than 100 times in one file. This keeps
+# memory small. Rank 30,000 is far above this count.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Google Books Ngram v3, American English (eng-us)"
+role = "frequency"
+format = "ngram-1gram-tsv"
+version = "20200217"
+license = "CC BY 3.0"
+license_url = "https://creativecommons.org/licenses/by/3.0/"
+url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
+credit = "Google Books Ngram Viewer data (American English corpus eng-us, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+year_min = 1950
+year_max = 2019
+min_count = 100
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00000-of-00014.gz"
+sha256 = "0e311b2f3b226008c4e5437c16712135ab3e76dbe333f523d54a2ea54e24573e"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00001-of-00014.gz"
+sha256 = "478f1931ec1f40f16353428a84b53a4f7fdfca4c8a2f23516e3e02c93b57da85"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00002-of-00014.gz"
+sha256 = "bf43a73abfbc86d2f96297a77091a75ca21452593a10eab21c1e2af4ff3d0aac"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00003-of-00014.gz"
+sha256 = "f56a842b9a3d1940577b295ebd6bda48c6bd9f0821425bfb7ef2539236e803f9"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00004-of-00014.gz"
+sha256 = "e96d8a95fc6b219718991833fc9983c589f9da39e44a6214d2a7ab7afa2cf13f"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00005-of-00014.gz"
+sha256 = "8ce07d1c766a39a1affac5685b04201be4a2571659b39d36778327b7f21de64b"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00006-of-00014.gz"
+sha256 = "b7eeb20796b09ba4cbd466b142aaeb263c9c84dd63b7f45aa5a3022517d1b8ff"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00007-of-00014.gz"
+sha256 = "631216c6462b2a9f150f712f2609721592a80b3590d97795ad0b1437a4cfdd18"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00008-of-00014.gz"
+sha256 = "701d04866e5f0140620cc9e7398762a316cfd103d5be1c5d7e77c8881968a124"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00009-of-00014.gz"
+sha256 = "0f1719a42dca8054c7aca0d89631793535a191bd557a8685c48f98c6c3c941dd"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00010-of-00014.gz"
+sha256 = "ff4bbba8d1b7086de7bb8f7b0c5e5d1d0ed57a4b1af989f4a06ae12eda920793"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00011-of-00014.gz"
+sha256 = "1f73aa5bb96f7c90467fb0e468bc12b561f3d334e8305387730db56e2116a54a"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00012-of-00014.gz"
+sha256 = "0b23f8aeec8b6b10e604c80fff8d6f4da99bfe6c85f79e06a675bdf8d6d58afd"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00013-of-00014.gz"
+sha256 = "76ab8738dd4e89b509e53fc348c4c6c9ebc375546dd9d185e320691ed2bd0ca7"
+
+# ---------------------------------------------------------------------------
+# Lexicon: SCOWL / ESDB, size 60, American spelling (A).
+# The tag tarball of the PRD needs Python and SQLite to make word lists. The same
+# release ships the finished Hunspell dictionary for en_US (size 60, spelling A).
+# The build expands its affix rules. Words that SCOWL marks as rude (NOSUGGEST) are left out.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "SCOWL / ESDB (Hunspell en_US, size 60, American spelling)"
+role = "lexicon"
+format = "hunspell"
+version = "2026.02.25 (tag rel-2026.02.25)"
+license = "MIT-style permission"
+license_url = "https://github.com/en-wl/wordlist/blob/rel-2026.02.25/Copyright"
+url = "https://github.com/en-wl/wordlist"
+credit = "SCOWL and Friends. Copyright 2000-2026 by Kevin Atkinson. https://wordlist.aspell.net"
+archive = "zip"
+license_text = """
+Copyright 2000-2026 by Kevin Atkinson
+
+Permission to use, copy, modify, distribute, and sell any part of SCOWLv2, or
+word lists created from it, is hereby granted without fee, provided that the
+above copyright notice appears in all copies and that both the above
+copyright notice and this notice appear in supporting documentation.  Kevin
+Atkinson makes no representations about the suitability of this database for
+any purpose.  It is provided "as is" without express or implied warranty.
+"""
+
+[[sources.files]]
+url = "https://github.com/en-wl/wordlist/releases/download/rel-2026.02.25/hunspell-en_US-2026.02.25.zip"
+member = "en_US.dic"
+part = "dic"
+sha256 = "ac8e73310e951d88c52c2cf2ba54ceaca34f8486a81630ac8a75dc5f931179f9"
+
+[[sources.files]]
+url = "https://github.com/en-wl/wordlist/releases/download/rel-2026.02.25/hunspell-en_US-2026.02.25.zip"
+member = "en_US.aff"
+part = "aff"
+sha256 = "ac8e73310e951d88c52c2cf2ba54ceaca34f8486a81630ac8a75dc5f931179f9"
