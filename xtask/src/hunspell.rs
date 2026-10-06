@@ -22,6 +22,9 @@ enum FlagMode {
 
 type Flag = u32;
 
+/// Called for each new word: the word, its continuation flags and the cross product mark.
+type Emit<'a> = &'a mut dyn FnMut(Vec<char>, &[Flag], bool);
+
 #[derive(Debug)]
 struct Rule {
     strip: String,
@@ -61,7 +64,7 @@ fn parse_flags(text: &str, mode: FlagMode) -> Result<Vec<Flag>> {
         FlagMode::Char | FlagMode::Utf8 => out.extend(text.chars().map(|c| c as u32)),
         FlagMode::Long => {
             let chars: Vec<char> = text.chars().collect();
-            if chars.len() % 2 != 0 {
+            if !chars.len().is_multiple_of(2) {
                 bail!("hunspell: long flags {text:?} need an even number of characters");
             }
             for pair in chars.chunks(2) {
@@ -240,12 +243,7 @@ fn parse_aff(bytes: &[u8]) -> Result<Aff> {
 }
 
 /// Apply one suffix rule set to `word`. Call `emit(new_word, continuation_flags)`.
-fn apply_suffixes(
-    aff: &Aff,
-    word: &[char],
-    flags: &[Flag],
-    emit: &mut dyn FnMut(Vec<char>, &[Flag], bool),
-) {
+fn apply_suffixes(aff: &Aff, word: &[char], flags: &[Flag], emit: Emit<'_>) {
     for flag in flags {
         let Some(set) = aff.suffixes.get(flag) else {
             continue;
@@ -262,12 +260,7 @@ fn apply_suffixes(
     }
 }
 
-fn apply_prefixes(
-    aff: &Aff,
-    word: &[char],
-    flags: &[Flag],
-    emit: &mut dyn FnMut(Vec<char>, &[Flag], bool),
-) {
+fn apply_prefixes(aff: &Aff, word: &[char], flags: &[Flag], emit: Emit<'_>) {
     for flag in flags {
         let Some(set) = aff.prefixes.get(flag) else {
             continue;
@@ -380,12 +373,10 @@ pub fn expand(dic: &[u8], aff: &[u8]) -> Result<Vec<String>> {
             emit_word(w, cont);
         }
         // Cross product: a prefix on top of a suffixed word.
-        for (w, cont, cross) in &suffixed {
+        for (w, _, cross) in &suffixed {
             if !*cross {
                 continue;
             }
-            let mut all_flags = flags.clone();
-            all_flags.extend_from_slice(cont);
             // Only the prefix flags of the original entry count here.
             apply_prefixes(&aff, w, &flags, &mut |w2, cont2, pcross| {
                 if pcross {

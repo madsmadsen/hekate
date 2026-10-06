@@ -74,17 +74,15 @@ pub fn classify(license: &str) -> Result<Kind, String> {
     // Split on " and " first, because " or " binds weaker (a choice inside a pair).
     if lower.contains(" and ") {
         let mut worst = Kind::PublicDomain;
-        let mut start = 0;
-        for part in split_keep(&lower, license, " and ", &mut start) {
+        for part in split_keep(&lower, license, " and ") {
             worst = stricter(worst, classify(&part)?);
         }
         return Ok(worst);
     }
     if lower.contains(" or ") {
-        let mut start = 0;
         let mut best: Option<Kind> = None;
         let mut first_err = None;
-        for part in split_keep(&lower, license, " or ", &mut start) {
+        for part in split_keep(&lower, license, " or ") {
             match classify(&part) {
                 Ok(k) => best = Some(best.map_or(k, |b| easier(b, k))),
                 Err(e) => first_err = first_err.or(Some(e)),
@@ -96,7 +94,7 @@ pub fn classify(license: &str) -> Result<Kind, String> {
 }
 
 /// Split `original` at `sep`, matching on the lowercase copy (same byte positions for ASCII).
-fn split_keep(lower: &str, original: &str, sep: &str, _start: &mut usize) -> Vec<String> {
+fn split_keep(lower: &str, original: &str, sep: &str) -> Vec<String> {
     let mut out = Vec::new();
     let mut pos = 0;
     while let Some(i) = lower[pos..].find(sep) {

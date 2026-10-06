@@ -1061,6 +1061,7 @@ dependencies = [
  "csv",
  "flate2",
  "hekate-core",
+ "rand_core",
  "regex",
  "serde",
  "serde_json",

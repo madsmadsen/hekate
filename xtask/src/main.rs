@@ -1,5 +1,6 @@
 //! `cargo xtask`: the build tool of Hekate. See `wordlists/README.md`.
 
+mod benchmark;
 mod check;
 mod config;
 mod count;
@@ -50,6 +51,7 @@ fn run(args: &[String]) -> Result<()> {
     };
     match cmd.as_str() {
         "wordlists" => wordlists::run(rest),
+        "benchmark" => benchmark::run(rest),
         "check-manifests" => check::run(rest),
         "notice" => wordlists::write_notice(),
         "wasm" => wasm::run(rest),

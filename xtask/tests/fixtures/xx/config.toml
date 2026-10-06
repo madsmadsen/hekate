@@ -1,0 +1,47 @@
+# Fixture language for the NFR-10 test. It is not a real language.
+code = "xx"
+name = "Testish"
+built_on = "2026-10-07"
+s = 5
+r = 120
+n = 40
+alphabet = "a-zé"
+# Only fixtures may lower the minimum size of 4,096 words.
+min_words = 20
+
+[ascii]
+strip_accents = true
+
+[extra]
+name = "Testish extra words"
+version = "1"
+license = "CC0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+url = "https://example.org/testish-extra"
+credit = "Written for the test."
+
+[[sources]]
+name = "Testish frequency table"
+role = "frequency"
+format = "freq-table"
+version = "1"
+license = "CC0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+url = "https://example.org/testish-frequency"
+credit = "Made for the test."
+word_column = 0
+count_column = 1
+[[sources.files]]
+path = "sources/freq.tsv"
+
+[[sources]]
+name = "Testish lexicon"
+role = "lexicon"
+format = "wordlist"
+version = "1"
+license = "CC0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+url = "https://example.org/testish-lexicon"
+credit = "Made for the test."
+[[sources.files]]
+path = "sources/lexicon.txt"

@@ -593,11 +593,12 @@ fn count_file(src: &Source, idx: usize, ctx: &Ctx) -> Result<(Counts, Vec<HashUp
     )
 }
 
+type FileResult = Result<(Counts, Vec<HashUpdate>)>;
+
 /// Count all files of a frequency source and add the counts.
 pub fn load_frequency(src: &Source, ctx: &Ctx) -> Result<(Counts, Vec<HashUpdate>)> {
     let n = src.files.len();
-    let results: Vec<Mutex<Option<Result<(Counts, Vec<HashUpdate>)>>>> =
-        (0..n).map(|_| Mutex::new(None)).collect();
+    let results: Vec<Mutex<Option<FileResult>>> = (0..n).map(|_| Mutex::new(None)).collect();
     let next = AtomicUsize::new(0);
     let workers = ctx.jobs.clamp(1, n.max(1));
     std::thread::scope(|scope| {
@@ -776,6 +777,10 @@ mod tests {
     use super::*;
     use crate::config::{Format, Role};
 
+    pub(super) fn src_for_cache(format: Format, role: Role) -> Source {
+        src(format, role)
+    }
+
     fn src(format: Format, role: Role) -> Source {
         Source {
             name: "t".into(),
@@ -853,7 +858,9 @@ mod tests {
     #[test]
     fn text_tokens_are_lowercase_nfc_words() {
         let mut c = Counts::default();
-        for_each_token("Café, café! l'été 42 e\u{301}te\u{301}", &mut |w| c.add(w, 1));
+        for_each_token("Café, café! l'été 42 e\u{301}te\u{301}", &mut |w| {
+            c.add(w, 1)
+        });
         assert_eq!(c.words.get("café"), Some(&2));
         assert_eq!(c.words.get("été"), Some(&2), "NFD input is joined");
         assert!(!c.words.contains_key("42"));
@@ -927,5 +934,87 @@ mod tests {
                 .collect::<Vec<_>>(),
             ["he", "said", "yes"]
         );
+    }
+}
+
+#[cfg(test)]
+mod cache_tests {
+    use super::*;
+    use crate::config::{FileRef, Format, Role};
+    fn setup(name: &str, sha: Option<&str>, url: bool) -> (Source, Ctx) {
+        let dir = std::env::temp_dir().join(format!("hekate-count-{}-{name}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("words.txt"), "alpha\nbeta\n").unwrap();
+        let mut s = tests_src();
+        s.files = vec![FileRef {
+            url: url.then(|| "https://example.invalid/words.txt".to_string()),
+            path: (!url).then(|| "words.txt".to_string()),
+            sha256: sha.map(String::from),
+            member: None,
+            part: None,
+        }];
+        let ctx = Ctx {
+            base_dir: dir.clone(),
+            cache_dir: dir.join("cache"),
+            update_hashes: false,
+            jobs: 1,
+        };
+        (s, ctx)
+    }
+
+    fn tests_src() -> Source {
+        let mut s = super::tests::src_for_cache(Format::Wordlist, Role::Lexicon);
+        s.name = "cache test".into();
+        s
+    }
+
+    #[test]
+    fn nfr_9_wrong_hash_stops_the_build_and_writes_no_cache() {
+        let (s, ctx) = setup("wrong", Some(&"0".repeat(64)), false);
+        let err = load_lexicon(&s, &ctx).unwrap_err();
+        assert!(err.0.contains("SHA-256 mismatch"), "{err}");
+        assert!(!ctx.cache_dir.exists() || std::fs::read_dir(&ctx.cache_dir).unwrap().count() == 0);
+    }
+
+    #[test]
+    fn nfr_9_link_without_hash_is_refused() {
+        let (s, ctx) = setup("nohash", None, true);
+        let err = load_lexicon(&s, &ctx).unwrap_err();
+        assert!(err.0.contains("no sha256"), "{err}");
+    }
+
+    #[test]
+    fn nfr_10_result_comes_from_the_cache_the_second_time() {
+        let (s, ctx) = setup("cache", None, false);
+        let (words, _) = load_lexicon(&s, &ctx).unwrap();
+        assert_eq!(words, ["alpha", "beta"]);
+        // Remove the source file. The cache must answer.
+        std::fs::remove_file(ctx.base_dir.join("words.txt")).unwrap();
+        // The local file hash cannot be computed now, so give it from the cache key instead.
+        let sha = crate::util::sha256_hex(b"alpha\nbeta\n");
+        let mut s2 = s.clone();
+        s2.files[0].sha256 = Some(sha);
+        let (again, updates) = load_lexicon(&s2, &ctx).unwrap();
+        assert_eq!(again, words);
+        assert!(updates.is_empty());
+    }
+
+    #[test]
+    fn nfr_9_update_mode_reports_a_new_hash() {
+        let (s, mut ctx) = setup("update", Some(&"0".repeat(64)), false);
+        ctx.update_hashes = true;
+        let (_, updates) = load_lexicon(&s, &ctx).unwrap();
+        assert_eq!(updates.len(), 1);
+        assert_eq!(updates[0].new, crate::util::sha256_hex(b"alpha\nbeta\n"));
+        assert_eq!(updates[0].old.as_deref(), Some("0".repeat(64).as_str()));
+    }
+
+    #[test]
+    fn nfr_10_changed_settings_use_another_cache_file() {
+        let (mut s, _) = setup("digest", None, false);
+        let a = params_digest(&s);
+        s.strip_flags = true;
+        assert_ne!(a, params_digest(&s));
     }
 }

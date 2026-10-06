@@ -114,6 +114,7 @@ impl Role {
 pub enum Format {
     // Frequency formats. They count how often each word occurs.
     /// Google Books Ngram v3 1-gram files.
+    #[serde(rename = "ngram-1gram-tsv")]
     Ngram1gramTsv,
     /// A table with a word column and an optional count column (TSV or CSV).
     FreqTable,
@@ -449,10 +450,8 @@ impl Source {
                     bail!("regex needs a capture group for the word");
                 }
             }
-            Format::WikidataLexemes => {
-                if self.language_qid.is_none() || self.lang_code.is_none() {
-                    bail!("wikidata-lexemes needs language_qid and lang_code");
-                }
+            Format::WikidataLexemes if self.language_qid.is_none() || self.lang_code.is_none() => {
+                bail!("wikidata-lexemes needs language_qid and lang_code");
             }
             _ => {}
         }
@@ -472,5 +471,105 @@ impl Source {
     /// The label of the source in the logs.
     pub fn label(&self) -> String {
         format!("{} ({})", self.name, self.version)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const BASE: &str = r#"
+code = "xx"
+name = "Test"
+built_on = "2026-01-01"
+s = 10
+r = 9000
+n = 5000
+alphabet = "a-z"
+[ascii]
+[[sources]]
+name = "f"
+role = "frequency"
+format = "ranked-list"
+version = "1"
+license = "CC0"
+license_url = "u"
+url = "u"
+credit = "c"
+[[sources.files]]
+path = "f.txt"
+[[sources]]
+name = "l"
+role = "lexicon"
+format = "wordlist"
+version = "1"
+license = "CC0"
+license_url = "u"
+url = "u"
+credit = "c"
+[[sources.files]]
+path = "l.txt"
+"#;
+
+    fn parse(extra: &str) -> Config {
+        toml::from_str(&format!("{extra}\n{BASE}")).unwrap()
+    }
+
+    #[test]
+    fn nfr_10_valid_config_passes() {
+        parse("").validate("xx", false).unwrap();
+    }
+
+    #[test]
+    fn nfr_10_min_words_is_only_allowed_for_fixtures() {
+        let cfg = parse("min_words = 10");
+        let err = cfg.validate("xx", false).unwrap_err();
+        assert!(err.0.contains("only allowed for fixtures"), "{err}");
+        cfg.validate("xx", true).unwrap();
+    }
+
+    #[test]
+    fn nfr_10_real_languages_need_4096_words() {
+        let text = BASE.replace("n = 5000", "n = 4095");
+        let cfg: Config = toml::from_str(&text).unwrap();
+        assert!(
+            cfg.validate("xx", false)
+                .unwrap_err()
+                .0
+                .contains("below the minimum")
+        );
+    }
+
+    #[test]
+    fn nfr_10_bad_configs_are_refused() {
+        let wrong_dir = parse("").validate("yy", false);
+        assert!(wrong_dir.is_err(), "code must match the folder");
+        let cases = [("min_len = 2\n", "min_len"), ("max_len = 10\n", "max_len")];
+        for (extra, what) in cases {
+            let cfg = parse(extra);
+            assert!(cfg.validate("xx", false).is_err(), "{what} should fail");
+        }
+        let text = BASE.replace("s = 10", "s = 8999");
+        let cfg: Config = toml::from_str(&text).unwrap();
+        assert!(cfg.validate("xx", false).unwrap_err().0.contains("r - s"));
+        let unknown = toml::from_str::<Config>(&format!("surprise = 1\n{BASE}"));
+        assert!(unknown.is_err(), "unknown keys are errors");
+    }
+
+    #[test]
+    fn nfr_10_each_role_needs_a_matching_format() {
+        let text = BASE.replace("format = \"wordlist\"", "format = \"ranked-list\"");
+        let cfg: Config = toml::from_str(&text).unwrap();
+        assert!(cfg.validate("xx", false).is_err());
+    }
+
+    #[test]
+    fn nfr_10_links_need_a_valid_hash_format() {
+        let text = BASE.replace(
+            "path = \"f.txt\"",
+            "url = \"https://x/f\"\nsha256 = \"abc\"",
+        );
+        let cfg: Config = toml::from_str(&text).unwrap();
+        assert!(cfg.validate("xx", false).unwrap_err().0.contains("sha256"));
     }
 }
