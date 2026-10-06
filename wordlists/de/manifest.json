@@ -1,0 +1,40 @@
+{
+  "code": "de",
+  "name": "Deutsch",
+  "words": 7776,
+  "ascii_words": 7484,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.869593843240784,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "Google Books Ngram v3, German (ger)",
+      "role": "frequency",
+      "version": "20200217",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html",
+      "credit": "Google Books Ngram Viewer data (German corpus ger, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+    },
+    {
+      "name": "Wikidata Lexemes (Deutsch)",
+      "role": "lexicon",
+      "version": "dump of 2026-09-30",
+      "license": "CC0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://www.wikidata.org/wiki/Wikidata:Lexicographical_data",
+      "credit": "Wikidata Lexemes, dump of 2026-09-30. Lexeme data of Wikidata is available under the CC0 license."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "1206c62d4fccf837223d2cee3c21033848d0de2a0bf2e83599d13099f7f426f6",
+    "words_ascii": "94253f3017ebb10e1816979de921398ad44efe9b22d547bd5e3d99e32b1e011e"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

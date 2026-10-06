@@ -1,0 +1,84 @@
+# Italiano word list. See wordlists/README.md for the meaning of each key.
+# Notes on the choices (all values were checked on the built list):
+# - S = 1000 and R = 30000 are used as proposed. After all filters, 95,000 candidates remain
+#   between the ranks, so the list needs no change of S or R (PRD 7.6 rule 1).
+# - The Wikidata Lexemes dump (CC0) gave a usable lexicon. The GPL backup (LibreOffice it_IT) is not used,
+#   so the list is not copyleft.
+# - The lexicon keeps the lemma and all forms of every lexeme except proper nouns (Q147276).
+# - The ASCII list removes accents (PRD table 7.1). If two words become the same, both are removed (PRD 7.4 rule 3).
+# - The dump still holds some English words, names and abbreviations. These are in blocklist.txt.
+#   A native speaker still has to review the list.
+# - The cache key holds the language item, so German and Italian each read the dump once.
+code = "it"
+name = "Italiano"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# S = 1000 and R = 30000 are the values that the PRD proposes. It stays as proposed: the list is large enough.
+# The benchmark of PRD 7.6 and the native speakers decide the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-zàèéìíîòóùú"
+
+# Italian words are lowercase. `fold` is still used, so that lexicon forms that have a
+# capital letter at the start (for example in lemmas) can match the lowercase Ngram words.
+# Proper nouns are left out of the lexicon (see the lexicon source).
+lexicon_case = "fold"
+
+# PRD 7.4, table 7.1.
+[ascii]
+strip_accents = true
+
+# ---------------------------------------------------------------------------
+# Frequency source: Google Books Ngram v3, corpus `ita`, 1-grams.
+# The build counts only plain tokens (no part-of-speech tag), lowercases them,
+# and adds the counts of the years 1950 to 2019. Modern books give modern words.
+# `min_count` drops tokens that occur fewer than 100 times in one file. This keeps
+# memory small. The words around rank 30,000 have a much higher total count.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Google Books Ngram v3, Italian (ita)"
+role = "frequency"
+format = "ngram-1gram-tsv"
+version = "20200217"
+license = "CC BY 3.0"
+license_url = "https://creativecommons.org/licenses/by/3.0/"
+url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
+credit = "Google Books Ngram Viewer data (Italian corpus ita, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+year_min = 1950
+year_max = 2019
+min_count = 100
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ita/1-00000-of-00002.gz"
+sha256 = "d95f5e9bd37eaea9d143d416ad5e224886e3fec8a2fb062014100cced017055b"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ita/1-00001-of-00002.gz"
+sha256 = "e51c87a6bb8a43dc2554c7f2bbe06fc97c7b5ded8c11d51afd1eb57f5a61ebe1"
+
+# ---------------------------------------------------------------------------
+# Lexicon: Wikidata Lexemes (CC0), the dump of 2026-09-30.
+# A lexeme has a lemma and many forms. The build reads the lemma and every form
+# written in `it`. It leaves out lexemes of the category "proper noun" (Q147276),
+# so that names do not enter the lexicon. See the notes at the top of this file.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Wikidata Lexemes (Italiano)"
+role = "lexicon"
+format = "wikidata-lexemes"
+version = "dump of 2026-09-30"
+license = "CC0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+url = "https://www.wikidata.org/wiki/Wikidata:Lexicographical_data"
+credit = "Wikidata Lexemes, dump of 2026-09-30. Lexeme data of Wikidata is available under the CC0 license."
+language_qid = "Q652"
+lang_code = "it"
+exclude_categories = ["Q147276"]
+
+[[sources.files]]
+url = "https://dumps.wikimedia.org/wikidatawiki/entities/20260930/wikidata-20260930-lexemes.json.bz2"
+sha256 = "bd22f110cb333e3bcb5d1b368f73fbbefefb82c1f4397db26f55d1f21d75d5bf"

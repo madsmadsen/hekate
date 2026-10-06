@@ -1,0 +1,40 @@
+{
+  "code": "it",
+  "name": "Italiano",
+  "words": 7776,
+  "ascii_words": 7662,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.90350531042388,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "Google Books Ngram v3, Italian (ita)",
+      "role": "frequency",
+      "version": "20200217",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html",
+      "credit": "Google Books Ngram Viewer data (Italian corpus ita, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+    },
+    {
+      "name": "Wikidata Lexemes (Italiano)",
+      "role": "lexicon",
+      "version": "dump of 2026-09-30",
+      "license": "CC0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://www.wikidata.org/wiki/Wikidata:Lexicographical_data",
+      "credit": "Wikidata Lexemes, dump of 2026-09-30. Lexeme data of Wikidata is available under the CC0 license."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "f52b1e59b953b3f04b5a2d50ea7afcd8c7f50abd87cb795f393cfa8884dfba51",
+    "words_ascii": "07c9897663b054ed6f3b535fad6c7ccf7f98d48766492febc2e240432d17aac7"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

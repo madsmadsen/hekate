@@ -1,0 +1,110 @@
+# Deutsch word list. See wordlists/README.md for the meaning of each key.
+# Notes on the choices (all values were checked on the built list):
+# - S = 1000 and R = 30000 are used as proposed. After all filters, 98,000 candidates remain
+#   between the ranks, so the list needs no change of S or R (PRD 7.6 rule 1).
+# - The Wikidata Lexemes dump (CC0) gave a usable lexicon. The GPL backup (LibreOffice Hunspell) is not used,
+#   so the list is not copyleft.
+# - The lexicon keeps the lemma and all forms of every lexeme except proper nouns (Q147276).
+#   Nouns, verbs and adjectives all stay, so inflected forms are not lost.
+#   `fold` lowercases the capitalised noun forms.
+# - The dump still holds some abbreviations, English words, names and old spellings.
+#   These are in blocklist.txt. A native speaker still has to review the list.
+# - The cache key holds the language item, so German and Italian each read the dump once.
+code = "de"
+name = "Deutsch"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# S = 1000 and R = 30000 are the values that the PRD proposes. It stays as proposed: the list is large enough.
+# The benchmark of PRD 7.6 and the native speakers decide the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-zäöüß"
+
+# German nouns are written with a capital letter in the lexicon. The final list is
+# lowercase, and the Ngram counts are lowercase. `fold` lowercases the lexicon words.
+# This keeps the nouns. Proper nouns are left out of the lexicon (see the lexicon source).
+lexicon_case = "fold"
+
+# PRD 7.4, table 7.1.
+[ascii]
+strip_accents = false
+map = { "ä" = "ae", "ö" = "oe", "ü" = "ue", "ß" = "ss" }
+
+# ---------------------------------------------------------------------------
+# Frequency source: Google Books Ngram v3, corpus `ger`, 1-grams.
+# The build counts only plain tokens (no part-of-speech tag), lowercases them,
+# and adds the counts of the years 1950 to 2019. Modern books give modern words.
+# `min_count` drops tokens that occur fewer than 300 times in one file. This keeps
+# memory small. The words around rank 30,000 have a much higher total count.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Google Books Ngram v3, German (ger)"
+role = "frequency"
+format = "ngram-1gram-tsv"
+version = "20200217"
+license = "CC BY 3.0"
+license_url = "https://creativecommons.org/licenses/by/3.0/"
+url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
+credit = "Google Books Ngram Viewer data (German corpus ger, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+year_min = 1950
+year_max = 2019
+min_count = 300
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00000-of-00008.gz"
+sha256 = "c881e4bddb9da66995bb0d2181b6414279a16f46cea608c7a98d3946b9e76277"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00001-of-00008.gz"
+sha256 = "837a33f83cc12c8d131b3af8c9b986be3484f693a8139eed7c01b3830be9f61e"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00002-of-00008.gz"
+sha256 = "788c550260fe1492af5e463356f077034f5acf218b2dc84492782ff0ede02738"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00003-of-00008.gz"
+sha256 = "5df06003559927d3693246f10081bdd17b8059d4b0caf2b4f9b8472526c4e37f"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00004-of-00008.gz"
+sha256 = "9ecf85adb2c0f300b2e6d742660cc75a45379079a8b392a0c55ea60a6ebd7d11"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00005-of-00008.gz"
+sha256 = "301915f102d239b581c5ec7378d72261e0b83d563ba44546d189964616c6fe57"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00006-of-00008.gz"
+sha256 = "b9665900834aa086c674ff0749033b663fc645b1fc9985715b53317043d2d189"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/ger/1-00007-of-00008.gz"
+sha256 = "ff9d53b0762887214b371365d070724f20d45c8fafc92853d8bc8d2375dfcb10"
+
+# ---------------------------------------------------------------------------
+# Lexicon: Wikidata Lexemes (CC0), the dump of 2026-09-30.
+# A lexeme has a lemma and many forms. The build reads the lemma and every form
+# written in `de`. It leaves out lexemes of the category "proper noun" (Q147276),
+# so that names do not enter the lexicon. See the notes at the top of this file.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Wikidata Lexemes (Deutsch)"
+role = "lexicon"
+format = "wikidata-lexemes"
+version = "dump of 2026-09-30"
+license = "CC0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+url = "https://www.wikidata.org/wiki/Wikidata:Lexicographical_data"
+credit = "Wikidata Lexemes, dump of 2026-09-30. Lexeme data of Wikidata is available under the CC0 license."
+language_qid = "Q188"
+lang_code = "de"
+exclude_categories = ["Q147276"]
+
+[[sources.files]]
+url = "https://dumps.wikimedia.org/wikidatawiki/entities/20260930/wikidata-20260930-lexemes.json.bz2"
+sha256 = "bd22f110cb333e3bcb5d1b368f73fbbefefb82c1f4397db26f55d1f21d75d5bf"

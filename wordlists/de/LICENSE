@@ -1,0 +1,22 @@
+Word list license: de (Deutsch)
+===============================
+
+The files words.txt and words-ascii.txt in this folder are made from the sources below.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+The license of each source applies to the words that come from that source.
+
+You may use this list for any purpose, including commercial use. You must give the credit of CREDITS.md, link the licenses, and say that the list was changed.
+
+Sources
+-------
+
+1. Google Books Ngram v3, German (ger) (version: 20200217, role: frequency)
+   License: CC BY 3.0
+   License text: https://creativecommons.org/licenses/by/3.0/
+   Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+
+2. Wikidata Lexemes (Deutsch) (version: dump of 2026-09-30, role: lexicon)
+   License: CC0
+   License text: https://creativecommons.org/publicdomain/zero/1.0/
+   Home page: https://www.wikidata.org/wiki/Wikidata:Lexicographical_data
+
