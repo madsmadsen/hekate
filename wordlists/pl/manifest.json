@@ -1,0 +1,40 @@
+{
+  "code": "pl",
+  "name": "Polski",
+  "words": 7776,
+  "ascii_words": 7738,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.917745013443216,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "KWJP100 frequency lists (lemmas, all parts of speech)",
+      "role": "frequency",
+      "version": "commit 26d82bd8b906dfed1cfcf8f903b1650b56daeabf",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://github.com/ipipan/kwjp100-varia/tree/main/freqlists",
+      "credit": "KWJP100 frequency lists, Institute of Computer Science, Polish Academy of Sciences (IPI PAN), https://github.com/ipipan/kwjp100-varia. Licensed under CC BY 4.0. Hekate counts base forms from this list and changes the format."
+    },
+    {
+      "name": "SJP.PL word list for games (sjp-20260901)",
+      "role": "lexicon",
+      "version": "20260901",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://sjp.pl/sl/growy/",
+      "credit": "Słownik SJP.PL (https://sjp.pl), word list for games, version 20260901. Licensed under CC BY 4.0 (choice of GPL 2 or CC BY 4.0)."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "d0829a5431fc749b25f3a5222e8c83194a958985f9286c86e4210e75ca6a17f0",
+    "words_ascii": "9fd77ed8e54173773f34bb603adf880a2fa5216999465259e69cf7d5b3bafc43"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

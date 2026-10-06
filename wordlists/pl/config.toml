@@ -1,0 +1,94 @@
+# Polish word list. See wordlists/README.md for the meaning of each key.
+code = "pl"
+name = "Polski"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-ząćęłńóśźż"
+
+# The SJP.PL game list holds lowercase words only.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: Polish letters with a mark become the plain letter.
+[ascii]
+strip_accents = false
+
+[ascii.map]
+"ą" = "a"
+"ć" = "c"
+"ę" = "e"
+"ł" = "l"
+"ń" = "n"
+"ó" = "o"
+"ś" = "s"
+"ź" = "z"
+"ż" = "z"
+
+# ---------------------------------------------------------------------------
+# Frequency source: KWJP100 lemma frequency list (all parts of speech).
+# The file is a CSV table. Column 0 is the base form (lemma), column 1 is the part of
+# speech tag, column 2 is the count (`freq`). The same lemma can have rows for more than
+# one part of speech. The build adds these counts.
+# `min_count` drops lemmas with a count below 20. The word at rank 30,000 has a higher count.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "KWJP100 frequency lists (lemmas, all parts of speech)"
+role = "frequency"
+format = "freq-table"
+version = "commit 26d82bd8b906dfed1cfcf8f903b1650b56daeabf"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://github.com/ipipan/kwjp100-varia/tree/main/freqlists"
+credit = "KWJP100 frequency lists, Institute of Computer Science, Polish Academy of Sciences (IPI PAN), https://github.com/ipipan/kwjp100-varia. Licensed under CC BY 4.0. Hekate counts base forms from this list and changes the format."
+delimiter = ","
+header = true
+word_column = 0
+count_column = 2
+min_count = 20
+# The lemmas keep their case. A lemma with a capital letter is a name or a place (for example
+# "Janusz" 5,432 times and "janusz" 15 times), so the build skips these rows.
+skip_capitalized = true
+# Drop the rows that the tagger marked as foreign or unknown words (xxs, xxx), abbreviations
+# (brev), digits (dig, romandig) and punctuation (interp).
+filters = [
+  { column = 1, not_equals = "xxs" },
+  { column = 1, not_equals = "xxx" },
+  { column = 1, not_equals = "brev" },
+  { column = 1, not_equals = "dig" },
+  { column = 1, not_equals = "romandig" },
+  { column = 1, not_equals = "interp" },
+]
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/ipipan/kwjp100-varia/26d82bd8b906dfed1cfcf8f903b1650b56daeabf/freqlists/kwjp100-slowa-lemma-all.csv.gz"
+sha256 = "5206e80669a054ad4d3c9d39b7643d13e75435afa3612a15d2847f39f42bb5fc"
+
+# ---------------------------------------------------------------------------
+# Lexicon: SJP.PL word list for word games (all inflected forms, lowercase).
+# The PRD names `sjp-20260901.zip` and this is still the current file on
+# https://sjp.pl/sl/growy/ (checked 2026-10-07). The site keeps only the newest file.
+# License: the README of the zip file and the web page offer GPL 2 or CC BY 4.0.
+# (The Hunspell file of SJP.PL offers more choices, but this word list does not.)
+# Hekate selects CC BY 4.0. It has the fewest duties (PRD 7.2).
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "SJP.PL word list for games (sjp-20260901)"
+role = "lexicon"
+format = "wordlist"
+version = "20260901"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://sjp.pl/sl/growy/"
+credit = "Słownik SJP.PL (https://sjp.pl), word list for games, version 20260901. Licensed under CC BY 4.0 (choice of GPL 2 or CC BY 4.0)."
+archive = "zip"
+
+[[sources.files]]
+url = "https://sjp.pl/sl/growy/sjp-20260901.zip"
+member = "slowa.txt"
+sha256 = "43796ccf34a8ba9b6e965588b842721056b5a89cad4c8c38e057f838d4eaa6a5"
