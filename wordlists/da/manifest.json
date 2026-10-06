@@ -1,0 +1,40 @@
+{
+  "code": "da",
+  "name": "Dansk",
+  "words": 7776,
+  "ascii_words": 7444,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.861862340059151,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "ParlaMint 4.1, ParlaMint-DK (plain text)",
+      "role": "frequency",
+      "version": "4.1",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://www.clarin.si/repository/xmlui/handle/11356/1912",
+      "credit": "Erjavec, T. et al. Multilingual comparable corpora of parliamentary debates ParlaMint 4.1 (ParlaMint-DK), Slovenian language resource repository CLARIN.SI, http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0. Hekate counts the words of the speeches."
+    },
+    {
+      "name": "COR, Det Centrale Ordregister",
+      "role": "lexicon",
+      "version": "1.5.1.0",
+      "license": "CC0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://ordregister.dk/",
+      "credit": "COR, Det Centrale Ordregister, version 1.5.1.0, https://ordregister.dk. CC0."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "bd4bd1d98902c5171c1c8877741a90eb62a48e228fc913cf3b9d3f6ece0dcb89",
+    "words_ascii": "185fde04ee5e49f39de949343bfee39db11381287359ac1992d4f96f23711ba6"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

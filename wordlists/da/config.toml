@@ -1,0 +1,97 @@
+# Danish word list. See wordlists/README.md for the meaning of each key.
+code = "da"
+name = "Dansk"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-zæøå"
+
+# COR holds lowercase words. Names start with a capital letter, so they do not match.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: Danish æ→ae, ø→oe, å→aa.
+[ascii]
+strip_accents = false
+
+[ascii.map]
+"æ" = "ae"
+"ø" = "oe"
+"å" = "aa"
+
+# ---------------------------------------------------------------------------
+# Frequency source: ParlaMint 4.1, ParlaMint-DK (debates of the Folketing, 2014 to 2022).
+# The PRD names NST N-gram Danish as the first source and ParlaMint-DK as the source for
+# newer words. NST is not usable here (checked 2026-10-07):
+#   - The file ngram_dan.tar.gz is 8.1 GB. At the speed of this network (about 7 MB/s) one
+#     download takes about 20 minutes. The CI job has a limit of 60 minutes for all languages.
+#   - The tar file holds only 6-gram files. The first member is `dansk/ngram6-1.srt` (491 MB,
+#     lines like `count w1 w2 w3 w4 w5 w6`, sorted by the first word, counts of 2 or more).
+#     It has no list of single words. A word count made from 6-grams that occur twice or more
+#     is not a true word count: it ranks words that sit in repeated phrases too high and it
+#     loses most rare words.
+#   - The text is from newspapers of 1995 to 1999 and the file uses ISO 8859-1.
+# So ParlaMint-DK is the only frequency source (the PRD backup). It is plain text (the
+# `ParlaMint-DK.txt` folder: one line for each speech, `id<TAB>text`). The id of each line
+# gives the tokens `parlamint` and `dk`. These words are not in the lexicon, so they drop out.
+# The member `.txt` also matches the file `ParlaMint-DK.TEI/00README.txt` (a few words).
+# `min_count` drops words with fewer than 5 uses. The word at rank 30,000 has a higher count.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "ParlaMint 4.1, ParlaMint-DK (plain text)"
+role = "frequency"
+format = "text"
+version = "4.1"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://www.clarin.si/repository/xmlui/handle/11356/1912"
+credit = "Erjavec, T. et al. Multilingual comparable corpora of parliamentary debates ParlaMint 4.1 (ParlaMint-DK), Slovenian language resource repository CLARIN.SI, http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0. Hekate counts the words of the speeches."
+archive = "tar"
+min_count = 5
+
+[[sources.files]]
+url = "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1912/ParlaMint-DK.tgz?sequence=6&isAllowed=y"
+member = ".txt"
+sha256 = "f4cb2cb31176e37b2614ba630d2ddcdfd9723be79ed2cd6f4b9098dfa1a31a05"
+
+# ---------------------------------------------------------------------------
+# Lexicon: COR, Det Centrale Ordregister, version 1.5.1.0 (CC0).
+# The table has one row for each word form: id, lemma, note, tag, full form, status.
+# Hekate reads the full form (column 4) of the rows with status `N` (normal use).
+# It leaves out abbreviations (`fork`), proper nouns (`prop`, `prop.gen`), prefixes,
+# sound words, interjections, roman numerals and words that exist only inside a fixed
+# phrase (`flerord`, `iflerord`).
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "COR, Det Centrale Ordregister"
+role = "lexicon"
+format = "table-words"
+version = "1.5.1.0"
+license = "CC0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+url = "https://ordregister.dk/"
+credit = "COR, Det Centrale Ordregister, version 1.5.1.0, https://ordregister.dk. CC0."
+delimiter = "\t"
+header = false
+word_column = 4
+filters = [
+  { column = 5, equals = "N" },
+  { column = 3, not_equals = "fork" },
+  { column = 3, not_equals = "prop" },
+  { column = 3, not_equals = "prop.gen" },
+  { column = 3, not_equals = "lydord" },
+  { column = 3, not_equals = "udråbsord" },
+  { column = 3, not_equals = "præfiks" },
+  { column = 3, not_equals = "romertal" },
+  { column = 3, not_equals = "flerord" },
+  { column = 3, not_equals = "iflerord" },
+]
+
+[[sources.files]]
+url = "https://ordregister.dk/files/cor1.5.1.0.tsv"
+sha256 = "1c4d1c06bd676e66be8e8c0af68615c8a892472a05af3b261ba8a9d1f2d2b82b"
