@@ -1,0 +1,76 @@
+# Norwegian (Bokmål) word list. See wordlists/README.md for the meaning of each key.
+code = "nb"
+name = "Norsk bokmål"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-zæøå"
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: æ -> ae, ø -> oe, å -> aa.
+[ascii]
+strip_accents = false
+[ascii.map]
+"æ" = "ae"
+"ø" = "oe"
+"å" = "aa"
+
+# ---------------------------------------------------------------------------
+# Frequency source: NB Språkbanken N-gram Bokmål, 1-grams.
+# The zip file holds one text file in ISO-8859-1. Each line is a count, then
+# a space, then a token, with leading spaces. The tokens keep their case. The build
+# makes them lowercase and adds the counts. `min_count` drops very rare tokens to keep memory small.
+# The source has no version. The PRD says the team keeps a copy in a `sources`
+# release. That release does not exist yet. We download the original link. The copy date is 2026-10-07
+# (the server says the file was changed on 2016-10-24).
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "NB Språkbanken N-gram Bokmål (1-grams)"
+role = "frequency"
+format = "freq-table"
+version = "copy of 2026-10-07 (file of 2016-10-24)"
+license = "CC0"
+license_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+url = "https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-12/"
+credit = "NB Språkbanken N-gram Bokmål, from the Nasjonalbiblioteket (National Library of Norway). Released under CC0. The words were changed to lowercase and filtered."
+archive = "zip"
+latin1 = true
+whitespace = true
+word_column = 1
+count_column = 0
+min_count = 5
+
+[[sources.files]]
+url = "https://www.nb.no/sbfil/tekst/1gram_nob_f1_freq.zip"
+member = "1gram_nob_f1_freq.frk"
+sha256 = "cda1477a11fc98bcf61e8152fe1a09a4d5f9ae04b16c4ed9dc86ee224c2284e3"
+
+# ---------------------------------------------------------------------------
+# Lexicon: Norsk ordbank Bokmål 2005, all inflected forms (`fullformsliste.txt`,
+# column OPPSLAG). The file is ISO-8859-1 with CRLF line ends. Proper names have a
+# capital letter, so `lexicon_case = "exact"` leaves them out.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Norsk ordbank Bokmål 2005"
+role = "lexicon"
+format = "table-words"
+version = "20220201"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-5/"
+credit = "Norsk ordbank Bokmål 2005 (version 20220201), from Språkrådet and the Nasjonalbiblioteket. Licensed under CC BY 4.0. Only the word forms were read, and the words were filtered."
+archive = "tar"
+latin1 = true
+header = true
+word_column = "OPPSLAG"
+
+[[sources.files]]
+url = "https://www.nb.no/sbfil/leksikalske_databaser/ordbank/20220201_norsk_ordbank_nob_2005.tar.gz"
+member = "fullformsliste.txt"
+sha256 = "57d91cb3f17b85befa50a3b56fcaed9800ca665b39486fe97b668add914d5f60"
