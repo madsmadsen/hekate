@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hekate demo: hostile page CSS</title>
+    <link rel="stylesheet" href="demo.css" />
+    <link rel="stylesheet" href="hostile.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Hostile page CSS</h1>
+      <p>
+        This page styles every button, input, span and div. The component must look the same
+        (FR-41).
+      </p>
+      <script
+        type="module"
+        src="http://localhost:8081/__VERSION__/hekate.js"
+        integrity="__SRI__"
+        crossorigin="anonymous"
+      ></script>
+      <hekate-generator>Your browser cannot show the password generator.</hekate-generator>
+    </main>
+  </body>
+</html>

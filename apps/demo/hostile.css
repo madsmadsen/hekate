@@ -1,0 +1,24 @@
+/* Rules that could break a component without a shadow root (FR-41). */
+button {
+  color: red;
+  background: yellow;
+  border: 3px dashed green;
+  font-size: 40px;
+}
+
+input,
+select,
+span,
+div,
+p,
+a,
+label {
+  color: red !important;
+  font-family: "Comic Sans MS", cursive !important;
+  font-size: 30px !important;
+  letter-spacing: 5px !important;
+}
+
+* {
+  box-sizing: content-box;
+}

@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f6f6f8;
+  color: #1b1d26;
+}
+
+main {
+  max-inline-size: 50rem;
+  margin-inline: auto;
+  padding: 1rem;
+}
+
+hekate-generator {
+  margin-block: 1rem;
+  border: 1px solid #c9ccd6;
+}
+
+code {
+  font-family: ui-monospace, Menlo, monospace;
+}

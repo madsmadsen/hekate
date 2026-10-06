@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hekate demo: two components</title>
+    <link rel="stylesheet" href="demo.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Two components</h1>
+      <p>Each component works on its own. A word list loads one time (FR-44).</p>
+      <script
+        type="module"
+        src="http://localhost:8081/__VERSION__/hekate.js"
+        integrity="__SRI__"
+        crossorigin="anonymous"
+      ></script>
+      <hekate-generator id="first" language="en-US"
+        >Your browser cannot show the password generator.</hekate-generator
+      >
+      <hekate-generator id="second" language="en-US" theme="dark"
+        >Your browser cannot show the password generator.</hekate-generator
+      >
+    </main>
+  </body>
+</html>
