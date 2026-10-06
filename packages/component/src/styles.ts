@@ -43,7 +43,6 @@ const component = css`
     box-sizing: border-box;
     display: grid;
     gap: var(--hekate-gap, 1rem);
-    padding: var(--hekate-gap, 1rem);
     font-family: var(--hekate-font-family, var(--wa-font-family-body));
     color: var(--hekate-color-text, var(--_text));
     background-color: var(--hekate-color-surface, var(--_surface));
@@ -61,6 +60,14 @@ const component = css`
   .root *::before,
   .root *::after {
     box-sizing: border-box;
+  }
+
+  /* The "base" part holds the whole UI, but not the footer: a page cannot hide the Credits link (FR-30). */
+  .base {
+    display: grid;
+    gap: var(--hekate-gap, 1rem);
+    min-inline-size: 0;
+    padding: var(--hekate-gap, 1rem) var(--hekate-gap, 1rem) 0;
   }
 
   .main {
@@ -252,10 +259,25 @@ const component = css`
     margin-block-start: 0.5rem;
   }
 
+  .credits-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-block-end: 0.75rem;
+  }
+
+  .credits-title {
+    margin: 0;
+    font-size: var(--wa-font-size-l, 1.125rem);
+    overflow-wrap: anywhere;
+  }
+
   /* The Credits link. It is not a part, so a page cannot style it away (FR-30). */
   .footer {
     display: flex !important;
     justify-content: flex-end;
+    padding: 0 var(--hekate-gap, 1rem) var(--hekate-gap, 1rem);
   }
 
   .credits-link {

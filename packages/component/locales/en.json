@@ -2,7 +2,6 @@
   "password.label": "Password",
   "password.loading": "Making a password…",
   "action.new": "New password",
-  "action.copy": "Copy",
   "action.copyLabel": "Copy password",
   "action.copied": "Copied",
   "action.copyFailed": "Copy failed. Select the password and copy it.",

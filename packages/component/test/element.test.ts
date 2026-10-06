@@ -444,13 +444,30 @@ describe("FR-30 credits", () => {
     }
   });
 
-  test("FR-30 the Credits link is in the page markup and is not a part", async () => {
+  test("FR-30 the Credits link and the dialog are in no part, so a page cannot hide them with ::part()", async () => {
     const page = new Page();
     await page.ready();
     const link = page.$("#credits-link") as HTMLElement;
     expect(link.hasAttribute("part")).toBe(false);
-    expect(link.closest("[part]")).toBe(page.$("[part=base]"));
-    expect(page.$("[part=base]")?.contains(link)).toBe(true);
+    expect(link.closest("[part]")).toBeNull();
+    const dialog = page.$("#credits") as HTMLElement;
+    expect(dialog.closest("[part]")).toBeNull();
+    expect(dialog.hasAttribute("part")).toBe(false);
+    expect(page.$("[part=base]")?.contains(link)).toBe(false);
+  });
+
+  test("FR-70 the close button of the dialog has its label from the message files", async () => {
+    const page = new Page({ "ui-language": "qps" });
+    await page.ready();
+    const icon = page.$("#credits-close hekate-wa-icon") as HTMLElement;
+    expect(icon.getAttribute("label")).toBe(pseudo["credits.close"]);
+    expect(page.$("#credits")?.hasAttribute("without-header")).toBe(true);
+  });
+
+  test("NFR-3 the Copy button has the visible and accessible text Copy password", async () => {
+    const page = new Page();
+    await page.ready();
+    expect(page.text("[part=copy-button]")).toBe("Copy password");
   });
 });
 

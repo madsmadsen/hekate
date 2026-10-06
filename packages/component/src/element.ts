@@ -565,16 +565,18 @@ export class HekateGenerator extends LitElement {
     return html`
       <div
         class=${classMap({ root: true, [this.#themeClass]: true, [`wa-${this.#themeClass}`]: true })}
-        part="base"
       >
-        <div
-          class="visually-hidden"
-          part="live-region"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-        >${this.liveText}</div>
-        ${this.#renderError()} ${fatal ? nothing : this.#renderMain()}
+        <div class="base" part="base">
+          <div
+            class="visually-hidden"
+            part="live-region"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >${this.liveText}</div>
+          ${this.#renderError()} ${fatal ? nothing : this.#renderMain()}
+        </div>
+        <!-- FR-30: the footer and the dialog are outside the "base" part, and are no part. -->
         <div class="footer">
           <button type="button" id="credits-link" class="credits-link" @click=${this.#openCredits}>
             ${this.#t("credits.link")}
@@ -649,7 +651,6 @@ export class HekateGenerator extends LitElement {
             variant="neutral"
             with-start
             ?disabled=${result === undefined}
-            aria-label=${t("action.copyLabel")}
             @click=${() => void this.#copy()}
           >
             <hekate-wa-icon
@@ -658,7 +659,7 @@ export class HekateGenerator extends LitElement {
               name="copy"
               aria-hidden="true"
             ></hekate-wa-icon>
-            ${t("action.copy")}
+            ${t("action.copyLabel")}
           </hekate-wa-button>
           <span class="copy-status" part="copy-status"
             >${this.copyState === "copied" ? t("action.copied") : nothing}</span
@@ -906,12 +907,27 @@ export class HekateGenerator extends LitElement {
     return html`
       <hekate-wa-dialog
         id="credits"
-        part="credits-dialog"
         label=${t("credits.title")}
+        without-header
         ?open=${this.creditsOpen}
         @wa-hide=${this.#onDialogHide}
         @wa-after-hide=${this.#onDialogAfterHide}
       >
+        <div class="credits-header">
+          <h2 class="credits-title">${t("credits.title")}</h2>
+          <hekate-wa-button
+            id="credits-close"
+            appearance="plain"
+            size="small"
+            @click=${() => (this.creditsOpen = false)}
+          >
+            <hekate-wa-icon
+              library="system"
+              name="xmark"
+              label=${t("credits.close")}
+            ></hekate-wa-icon>
+          </hekate-wa-button>
+        </div>
         ${
           this.creditsShown
             ? html`<div class="credits">
