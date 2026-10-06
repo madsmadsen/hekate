@@ -1,0 +1,13 @@
+[package]
+name = "hekate-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Random selection, password assembly and entropy for Hekate. No I/O."
+
+[dependencies]
+rand_core = "0.9"
+
+[dev-dependencies]
+rand = { version = "0.9", default-features = false, features = ["std", "std_rng"] }
+unicode-normalization = "0.1"
