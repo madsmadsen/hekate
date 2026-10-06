@@ -451,6 +451,14 @@ impl Source {
                 }
             }
             Format::WikidataLexemes if self.language_qid.is_none() || self.lang_code.is_none() => {
+            Format::Text => {
+                if let Some(re) = &self.regex {
+                    let re = regex::Regex::new(re).context(|| "bad regex".to_string())?;
+                    if re.captures_len() < 2 {
+                        bail!("regex needs a capture group for the text");
+                    }
+                }
+            }
                 bail!("wikidata-lexemes needs language_qid and lang_code");
             }
             _ => {}

@@ -125,7 +125,7 @@ Options of the formats:
 | `word_column`, `count_column`, `text_column` | the same | A column number (the first is 0) or a header name |
 | `filters` | the same | A list of `{ column, equals, min, max }`. The build keeps only rows that match. Numbers compare as numbers |
 | `strip_xml` | `text` | Remove XML tags before counting |
-| `regex` | `line-regex` | A regular expression. Group 1 is the word |
+| `regex` | `line-regex`, `text` | `line-regex`: group 1 is the word. `text`: the build counts only the words in group 1 of each match, and it decodes XML entities. Use it to read one language from TEI files, for example `<seg [^>]*xml:lang="nl"[^>]*>(.*)</seg>` with `strip_xml` |
 | `strip_flags` | `wordlist` | Remove everything from `/` on |
 | `language_qid`, `lang_code`, `exclude_categories` | `wikidata-lexemes` | Language item (for example `Q188`), language code of the words (`de`), item numbers of categories to leave out (for example proper nouns, `Q147276`) |
 

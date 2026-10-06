@@ -526,7 +526,17 @@ fn count_ranked(reader: &mut dyn Read, counts: &mut Counts) -> Result<()> {
 
 fn count_text(src: &Source, reader: &mut dyn Read, counts: &mut Counts) -> Result<()> {
     read_lines(reader, &mut |line| {
-        if src.strip_xml {
+        if let Some(re) = &re {
+            for cap in re.captures_iter(line) {
+                let Some(m) = cap.get(1) else { continue };
+                let text = if src.strip_xml {
+                    strip_xml_tags(m.as_str())
+                } else {
+                    m.as_str().to_string()
+                };
+                for_each_token(&unescape_xml(&text), &mut |w| counts.add(w, 1));
+            }
+        } else if src.strip_xml {
             for_each_token(&strip_xml_tags(line), &mut |w| counts.add(w, 1));
         } else {
             for_each_token(line, &mut |w| counts.add(w, 1));
@@ -596,7 +606,59 @@ fn count_file(src: &Source, idx: usize, ctx: &Ctx) -> Result<(Counts, Vec<HashUp
 type FileResult = Result<(Counts, Vec<HashUpdate>)>;
 
 /// Count all files of a frequency source and add the counts.
+/// Replace the XML entities in a piece of text: `&lt; &gt; &quot; &apos; &amp;` and `&#N;` / `&#xH;`.
+fn unescape_xml(text: &str) -> std::borrow::Cow<'_, str> {
+    if !text.contains('&') {
+        return std::borrow::Cow::Borrowed(text);
+    }
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find('&') {
+        out.push_str(&rest[..at]);
+        rest = &rest[at..];
+        let decoded = rest.find(';').filter(|&end| end <= 10).and_then(|end| {
+            let name = &rest[1..end];
+            let c = match name {
+                "lt" => '<',
+                "gt" => '>',
+                "quot" => '"',
+                "apos" => '\'',
+                "amp" => '&',
+                _ => {
+                    let num = name.strip_prefix('#')?;
+                    let code = match num.strip_prefix(['x', 'X']) {
+                        Some(hex) => u32::from_str_radix(hex, 16).ok()?,
+                        None => num.parse().ok()?,
+                    };
+                    char::from_u32(code)?
+                }
+            };
+            Some((c, end + 1))
+        });
+        match decoded {
+            Some((c, len)) => {
+                out.push(c);
+                rest = &rest[len..];
+            }
+            None => {
+                out.push('&');
+                rest = &rest[1..];
+            }
+        }
+    }
+    out.push_str(rest);
+    std::borrow::Cow::Owned(out)
+}
+
+/// `text`: count the words of each line. With `regex`, count only the words in group 1 of each
+/// match, and decode XML entities (for TEI files, for example `<seg ... xml:lang="nl">(.*)</seg>`).
 pub fn load_frequency(src: &Source, ctx: &Ctx) -> Result<(Counts, Vec<HashUpdate>)> {
+    let re = src
+        .regex
+        .as_deref()
+        .map(regex::Regex::new)
+        .transpose()
+        .context(|| "bad regex".to_string())?;
     let n = src.files.len();
     let results: Vec<Mutex<Option<FileResult>>> = (0..n).map(|_| Mutex::new(None)).collect();
     let next = AtomicUsize::new(0);
@@ -1018,3 +1080,28 @@ mod cache_tests {
         assert_ne!(a, params_digest(&s));
     }
 }
+
+    #[test]
+    fn xml_entities_are_decoded() {
+        assert_eq!(unescape_xml("plain"), "plain");
+        assert_eq!(unescape_xml("a &amp; b &lt;c&gt; &quot;d&quot; &apos;"), "a & b <c> \"d\" '");
+        assert_eq!(unescape_xml("&#8217;&#x41;"), "\u{2019}A");
+        assert_eq!(unescape_xml("fish & chips &unknown; &#zz;"), "fish & chips &unknown; &#zz;");
+    }
+
+    #[test]
+    fn text_with_regex_counts_only_the_words_of_group_one() {
+        let mut s = src(Format::Text, Role::Frequency);
+        s.regex = Some(r#"<seg [^>]*xml:lang="nl"[^>]*>(.*)</seg>"#.into());
+        s.strip_xml = true;
+        let data = concat!(
+            "<seg xml:id=\"a\" xml:lang=\"nl\">Hond en <hi>kat</hi> &amp; muis</seg>\n",
+            "<seg xml:id=\"b\" xml:lang=\"fr\">chien et chat</seg>\n",
+            "<u xml:lang=\"nl\">buiten</u>\n",
+        );
+        let mut c = Counts::default();
+        count_text(&s, &mut data.as_bytes(), &mut c).unwrap();
+        let mut words: Vec<&str> = c.words.keys().map(|w| w.as_ref()).collect();
+        words.sort_unstable();
+        assert_eq!(words, ["en", "hond", "kat", "muis"]);
+    }
