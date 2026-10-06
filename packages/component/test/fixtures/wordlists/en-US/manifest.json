@@ -1,0 +1,37 @@
+{
+  "code": "en-US",
+  "name": "English (US)",
+  "words": 4096,
+  "ascii_words": 4096,
+  "ascii_same": true,
+  "entropy_per_word": 12,
+  "entropy_per_word_ascii": 12,
+  "s": 1,
+  "r": 1,
+  "sources": [
+    {
+      "name": "Test source for en-US",
+      "role": "frequency",
+      "version": "1.0",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://example.org/en-US",
+      "credit": "Test credit for en-US"
+    },
+    {
+      "name": "Second test source for en-US",
+      "role": "lexicon",
+      "version": "2026-01-01",
+      "license": "MIT",
+      "license_url": "https://example.org/license-en-US",
+      "url": "https://example.org/second-en-US",
+      "credit": "Second test credit"
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "ce890ae01d072f3920f731c5e1da916312c5c3007e6aeb06627b05603eb2e963",
+    "words_ascii": "a428aa8e498f62ead227710e41ac1c7c2ec6ddbb26d0ffdaa1890b10886976ba"
+  },
+  "build": { "xtask_version": "0", "built_on": "test" }
+}

@@ -1,0 +1,37 @@
+{
+  "code": "sv",
+  "name": "Svenska",
+  "words": 4096,
+  "ascii_words": 4096,
+  "ascii_same": false,
+  "entropy_per_word": 12,
+  "entropy_per_word_ascii": 12,
+  "s": 1,
+  "r": 1,
+  "sources": [
+    {
+      "name": "Test source for sv",
+      "role": "frequency",
+      "version": "1.0",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://example.org/sv",
+      "credit": "Test credit for sv"
+    },
+    {
+      "name": "Second test source for sv",
+      "role": "lexicon",
+      "version": "2026-01-01",
+      "license": "MIT",
+      "license_url": "https://example.org/license-sv",
+      "url": "https://example.org/second-sv",
+      "credit": "Second test credit"
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "0ff8d27cfa804204cbcb8a4acc99c853c02b2dbecd8e809f48465fe0fc60b69c",
+    "words_ascii": "49da0b67e4324018c9c935c98f99fe65d3ef3ad934ce67f095c99f7afef7ab7c"
+  },
+  "build": { "xtask_version": "0", "built_on": "test" }
+}
