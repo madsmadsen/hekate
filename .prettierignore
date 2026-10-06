@@ -8,3 +8,6 @@ docs/PRD.md
 apps/demo/out/
 .smoke/
 .pnpm-store/
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+tests/e2e/__screenshots__/

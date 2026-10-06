@@ -12,7 +12,7 @@
     "format:fix": "prettier --write .",
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "test": "pnpm -r --if-present run test",
+    "test": "pnpm -r --if-present --filter '!@hekate/e2e' run test",
     "build": "cargo xtask dist"
   },
   "devDependencies": {
