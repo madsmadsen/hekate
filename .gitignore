@@ -6,3 +6,6 @@ test-results/
 playwright-report/
 .DS_Store
 wordlists/hashes.tsv
+apps/demo/out/
+.pnpm-store/
+.smoke/

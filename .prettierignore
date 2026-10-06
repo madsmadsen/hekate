@@ -5,3 +5,6 @@ pnpm-lock.yaml
 wordlists/
 packages/component/wasm/
 docs/PRD.md
+apps/demo/out/
+.smoke/
+.pnpm-store/
