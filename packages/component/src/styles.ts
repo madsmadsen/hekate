@@ -37,6 +37,7 @@ const component = css`
   }
 
   .root {
+    position: relative;
     container-type: inline-size;
     container-name: hekate;
     box-sizing: border-box;
@@ -68,15 +69,17 @@ const component = css`
     min-inline-size: 0;
   }
 
+  /* The live region. It is as wide as the component, so its text never overflows its box. */
   .visually-hidden {
     position: absolute;
-    inline-size: 1px;
+    inset-inline-start: 0;
+    inline-size: 100%;
     block-size: 1px;
-    margin: -1px;
+    margin: 0;
     padding: 0;
     overflow: hidden;
     clip-path: inset(50%);
-    white-space: nowrap;
+    white-space: normal;
     border: 0;
   }
 
