@@ -123,7 +123,8 @@ Options of the formats:
 | `delimiter` | `freq-table`, `csv-text`, `table-words` | One character. Default is a tab |
 | `header` | the same | `true` if the first row holds column names |
 | `word_column`, `count_column`, `text_column` | the same | A column number (the first is 0) or a header name |
-| `filters` | the same | A list of `{ column, equals, min, max }`. The build keeps only rows that match. Numbers compare as numbers |
+| `filters` | the same | A list of `{ column, equals, not_equals, min, max }`. The build keeps only rows that match. `not_equals` drops the rows with this value. Numbers compare as numbers |
+| `skip_capitalized` | `freq-table` | `true`: skip rows whose word starts with a capital letter. Use it for a table that keeps the case of base forms, so that names and places do not count as common words |
 | `strip_xml` | `text` | Remove XML tags before counting |
 | `regex` | `line-regex`, `text` | `line-regex`: group 1 is the word. `text`: the build counts only the words in group 1 of each match, and it decodes XML entities. Use it to read one language from TEI files, for example `<seg [^>]*xml:lang="nl"[^>]*>(.*)</seg>` with `strip_xml` |
 | `strip_flags` | `wordlist` | Remove everything from `/` on |

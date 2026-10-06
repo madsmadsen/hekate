@@ -121,12 +121,18 @@ struct CountParams<'a> {
     text_column: &'a Option<Column>,
     filters: &'a [RowFilter],
     strip_xml: bool,
+    #[serde(skip_serializing_if = "is_false")]
+    skip_capitalized: bool,
     regex: &'a Option<String>,
     strip_flags: bool,
     language_qid: &'a Option<String>,
     lang_code: &'a Option<String>,
     exclude_categories: &'a [String],
     role: &'static str,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
 }
 
 fn params_digest(src: &Source) -> String {
@@ -144,6 +150,7 @@ fn params_digest(src: &Source) -> String {
         text_column: &src.text_column,
         filters: &src.filters,
         strip_xml: src.strip_xml,
+        skip_capitalized: src.skip_capitalized,
         regex: &src.regex,
         strip_flags: src.strip_flags,
         language_qid: &src.language_qid,
@@ -374,6 +381,11 @@ fn filter_matches(f: &RowFilter, idx: usize, row: &csv::StringRecord) -> bool {
             _ => a.cmp(b),
         }
     };
+    if let Some(e) = &f.not_equals
+        && v == e.trim()
+    {
+        return false;
+    }
     if let Some(e) = &f.equals
         && v != e.trim()
     {
@@ -493,7 +505,13 @@ fn count_freq_table(src: &Source, reader: &mut dyn Read, counts: &mut Counts) ->
         wanted.push(c);
     }
     for_each_row(src, reader, &wanted, &mut |row, cols| {
-        let Some(word) = row.get(cols[0]).and_then(|w| fold_token(w.trim())) else {
+        let Some(word) = row.get(cols[0]).map(str::trim) else {
+            return Ok(());
+        };
+        if src.skip_capitalized && word.chars().next().is_some_and(char::is_uppercase) {
+            return Ok(());
+        }
+        let Some(word) = fold_token(word) else {
             return Ok(());
         };
         let n = match cols.get(1) {
@@ -867,6 +885,7 @@ mod tests {
             text_column: None,
             filters: vec![],
             strip_xml: false,
+            skip_capitalized: false,
             regex: None,
             strip_flags: false,
             language_qid: None,
@@ -937,6 +956,7 @@ mod tests {
         s.filters = vec![RowFilter {
             column: Column::Name("year".into()),
             equals: None,
+            not_equals: None,
             min: Some("2009".into()),
             max: None,
         }];
@@ -945,6 +965,42 @@ mod tests {
         count_freq_table(&s, &mut data.as_bytes(), &mut c).unwrap();
         assert_eq!(c.words.get("hello"), Some(&8));
         assert!(!c.words.contains_key("old"));
+    }
+
+    #[test]
+    fn freq_table_can_skip_capitalized_words() {
+        let mut s = src(Format::FreqTable, Role::Frequency);
+        s.delimiter = Some(",".into());
+        s.word_column = Some(Column::Index(0));
+        s.count_column = Some(Column::Index(1));
+        s.skip_capitalized = true;
+        let data = "Janusz,100\njanusz,3\nkwiat,7\nÓlafa,5\n";
+        let mut c = Counts::default();
+        count_freq_table(&s, &mut data.as_bytes(), &mut c).unwrap();
+        assert_eq!(c.words.get("janusz"), Some(&3));
+        assert_eq!(c.words.get("kwiat"), Some(&7));
+        assert!(!c.words.contains_key("ólafa"));
+    }
+
+    #[test]
+    fn not_equals_filter_drops_matching_rows() {
+        let mut s = src(Format::TableWords, Role::Lexicon);
+        s.word_column = Some(Column::Index(0));
+        s.filters = vec![RowFilter {
+            column: Column::Index(1),
+            equals: None,
+            not_equals: Some("fork".into()),
+            min: None,
+            max: None,
+        }];
+        let mut set = BTreeSet::new();
+        lexicon_from_stream(
+            &s,
+            &mut "hund\tsb\nhd\tfork\nkat\tsb\n".as_bytes(),
+            &mut set,
+        )
+        .unwrap();
+        assert_eq!(set.into_iter().collect::<Vec<_>>(), vec!["hund", "kat"]);
     }
 
     #[test]

@@ -185,13 +185,16 @@ pub enum Column {
     Name(String),
 }
 
-/// Keep only rows that match. Use `equals`, `min` or `max`. Numbers compare as numbers.
+/// Keep only rows that match. Use `equals`, `not_equals`, `min` or `max`. Numbers compare as numbers.
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct RowFilter {
     pub column: Column,
     #[serde(default)]
     pub equals: Option<String>,
+    /// Drop rows whose value is this text.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub not_equals: Option<String>,
     #[serde(default)]
     pub min: Option<String>,
     #[serde(default)]
@@ -280,6 +283,9 @@ pub struct Source {
     pub text_column: Option<Column>,
     #[serde(default)]
     pub filters: Vec<RowFilter>,
+    /// `freq-table`: skip rows whose word starts with a capital letter (names, places, foreign words).
+    #[serde(default)]
+    pub skip_capitalized: bool,
     /// `text`: remove XML tags before counting.
     #[serde(default)]
     pub strip_xml: bool,
