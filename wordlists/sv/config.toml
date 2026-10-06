@@ -1,0 +1,77 @@
+# Swedish word list. See wordlists/README.md for the meaning of each key.
+code = "sv"
+name = "Svenska"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-zåäö"
+
+# Swedish common nouns are lowercase. A word with a capital letter in the lexicon is a name or similar.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: å -> a, ä -> a, ö -> o.
+[ascii]
+strip_accents = false
+[ascii.map]
+"å" = "a"
+"ä" = "a"
+"ö" = "o"
+
+# ---------------------------------------------------------------------------
+# Frequency source: Språkbanken Flex.
+# The file has no header. Column 0 is the word. Columns 1, 2 and 3 are the frequency
+# per million words in novels, newspapers and web forums. We rank by column 2
+# (newspapers): it is standard written Swedish, with fewer dialogue and slang forms
+# than novels and forums. The build keeps the whole number part of the count
+# and drops words below 1 per million.
+# The word at rank 30,000 has about 2 per million, so this limit is not a problem.
+# The PRD says Flex has no version and that a copy goes into a `sources` release.
+# That release does not exist yet. We download the original link. The file was
+# copied on 2026-10-07 (the server says it was changed on 2025-12-08).
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Språkbanken Flex"
+role = "frequency"
+format = "freq-table"
+version = "copy of 2026-10-07 (file of 2025-12-08)"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://sprakbanken.se/en/resources/flex"
+credit = "Zechner, Niklas (2025). Flex (updated 2025-12-06). Data set, enriched and distributed by Språkbanken. https://doi.org/10.23695/7kq9-6n10. Licensed under CC BY 4.0. Column 2 (newspapers) was used. The words were changed to lowercase and filtered."
+archive = "zip"
+word_column = 0
+count_column = 2
+
+[[sources.files]]
+url = "https://spraakbanken.gu.se/resurser/data/flex.csv.zip"
+member = "flex.csv"
+sha256 = "4a99fe241525b58eacbd1650bd65e90a41507ed3eccba88f7f9865ceee8baa83"
+
+# ---------------------------------------------------------------------------
+# Lexicon: SALDO (saldo.xml). Each entry lists a base form in a `writtenForm`
+# line. The regex picks it. Words with a capital letter, a hyphen or a space do
+# not pass the word rules of the build. The file has no version. The copy date is
+# 2026-10-07 (the server says the file was changed on 2017-09-19).
+# Note: saldo.xml has base forms only (nouns in the singular, verbs in the
+# infinitive), not inflected forms.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "SALDO (saldo.xml)"
+role = "lexicon"
+format = "line-regex"
+version = "copy of 2026-10-07 (file of 2017-09-19)"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://sprakbanken.se/en/resources/saldo"
+credit = "SALDO, Svenskt associationslexikon. Copyright Språkbanken Text, University of Gothenburg. Borin, Forsberg and Lönngren (2013), Language Resources and Evaluation 47(4). Licensed under CC BY 4.0. Only base forms were read, and the words were filtered."
+regex = 'att="writtenForm" val="([^"]+)"'
+
+[[sources.files]]
+url = "https://svn.spraakbanken.gu.se/sb-arkiv/pub/lmf/saldo/saldo.xml"
+sha256 = "141ea24b6d821e9fd5bd724a909db4c11684cb64c43fd8955ed9de09536d187a"

@@ -1,0 +1,40 @@
+{
+  "code": "sv",
+  "name": "Svenska",
+  "words": 7776,
+  "ascii_words": 7562,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.884552133987235,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "Språkbanken Flex",
+      "role": "frequency",
+      "version": "copy of 2026-10-07 (file of 2025-12-08)",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://sprakbanken.se/en/resources/flex",
+      "credit": "Zechner, Niklas (2025). Flex (updated 2025-12-06). Data set, enriched and distributed by Språkbanken. https://doi.org/10.23695/7kq9-6n10. Licensed under CC BY 4.0. Column 2 (newspapers) was used. The words were changed to lowercase and filtered."
+    },
+    {
+      "name": "SALDO (saldo.xml)",
+      "role": "lexicon",
+      "version": "copy of 2026-10-07 (file of 2017-09-19)",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://sprakbanken.se/en/resources/saldo",
+      "credit": "SALDO, Svenskt associationslexikon. Copyright Språkbanken Text, University of Gothenburg. Borin, Forsberg and Lönngren (2013), Language Resources and Evaluation 47(4). Licensed under CC BY 4.0. Only base forms were read, and the words were filtered."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "a650cfd54b157080f69429c539f4465ba4a690d26972036057e1a7ec491d9622",
+    "words_ascii": "eaa1de470cebfe1b5ed1da4380bc2fc8c5e727a7389c79e1d8e11e6fb8d6dd27"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}
