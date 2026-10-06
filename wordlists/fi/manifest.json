@@ -1,0 +1,40 @@
+{
+  "code": "fi",
+  "name": "Suomi",
+  "words": 7776,
+  "ascii_words": 7736,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.917372079476841,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "Kielipankki Psycholinguistic Descriptives (lemma frequencies)",
+      "role": "frequency",
+      "version": "file of 2018-08-21 (urn:nbn:fi:lb-2018081601)",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://www.kielipankki.fi/download/psychlingdesc/",
+      "credit": "Psycholinguistic Descriptives, Kielipankki (The Language Bank of Finland), University of Helsinki, http://urn.fi/urn:nbn:fi:lb-2018081601. Licensed under CC BY 4.0. Hekate uses the base form counts and changes the format."
+    },
+    {
+      "name": "Kotus Nykysuomen sanalista 2024",
+      "role": "lexicon",
+      "version": "2024 (copy of 2025-08-04)",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://kotus.fi/sanakirjat/kielitoimiston-sanakirja/nykysuomen-sana-aineistot/nykysuomen-sanalista/",
+      "credit": "Nykysuomen sanalista, Kotimaisten kielten keskus (Kotus). Licensed under CC BY 4.0."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "46662208d1074ec14a0483b23ba1c7f0fe613e8dbd3b1aee171c72c96e19ab14",
+    "words_ascii": "0d6aaff8125b8fa7ed7ecf191bb54d57fa9bf6a36ba1719ca25f499f9891e6a0"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

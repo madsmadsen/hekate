@@ -1,0 +1,84 @@
+# Finnish word list. See wordlists/README.md for the meaning of each key.
+code = "fi"
+name = "Suomi"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-zäöå"
+
+# The Kotus list holds lowercase base forms. Names start with a capital letter, so they do not match.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: Finnish ä→a, ö→o, å→a.
+[ascii]
+strip_accents = false
+
+[ascii.map]
+"ä" = "a"
+"ö" = "o"
+"å" = "a"
+
+# ---------------------------------------------------------------------------
+# Frequency source: Kielipankki Psycholinguistic Descriptives, lemma (base form) table.
+# The table counts base forms in six corpora (Suomi24, newspapers, magazines, Wikipedia
+# 2017, Reddit, OpenSubtitles). `TOTAL_ABS` is the sum of the counts. PRD 7.2 accepts this
+# dataset (CC BY 4.0). Hekate uses only the counts. It does not use Wikipedia text.
+# `min_count` drops base forms with a total count below 50. The word at rank 30,000 has a
+# much higher count.
+# The zip file has no version. The copy date is the file date of the download (2018-08-21).
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Kielipankki Psycholinguistic Descriptives (lemma frequencies)"
+role = "frequency"
+format = "freq-table"
+version = "file of 2018-08-21 (urn:nbn:fi:lb-2018081601)"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://www.kielipankki.fi/download/psychlingdesc/"
+credit = "Psycholinguistic Descriptives, Kielipankki (The Language Bank of Finland), University of Helsinki, http://urn.fi/urn:nbn:fi:lb-2018081601. Licensed under CC BY 4.0. Hekate uses the base form counts and changes the format."
+archive = "zip"
+delimiter = ","
+header = true
+word_column = "LEMMA"
+count_column = "TOTAL_ABS"
+min_count = 50
+
+[[sources.files]]
+url = "https://www.kielipankki.fi/download/psychlingdesc/psychlingdesc.zip"
+member = "tables/lemma_freqs.csv"
+sha256 = "8065137b863778962e615bee3715b3c0e9adb317e6d1fcb0c5ef086a075f94b9"
+
+# ---------------------------------------------------------------------------
+# Lexicon: Kotus, Nykysuomen sanalista (Modern Finnish word list) 2024.
+# The original link https://kaino.kotus.fi/lataa/nykysuomensanalista2024.txt is behind a
+# Cloudflare bot check (HTTP 403, tested with curl and with a browser User-Agent header on
+# 2026-10-07). The build needs a link that scripts can use. This is the copy of the Internet
+# Archive of that same file (taken 2025-08-04). The `id_` in the link gives the original
+# bytes. The SHA-256 below pins the file. The team should still put one copy in the `sources`
+# release (PRD 7.2) so that the build does not depend on the Internet Archive.
+# The page of Kotus states CC BY 4.0 for the list.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Kotus Nykysuomen sanalista 2024"
+role = "lexicon"
+format = "table-words"
+version = "2024 (copy of 2025-08-04)"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://kotus.fi/sanakirjat/kielitoimiston-sanakirja/nykysuomen-sana-aineistot/nykysuomen-sanalista/"
+credit = "Nykysuomen sanalista, Kotimaisten kielten keskus (Kotus). Licensed under CC BY 4.0."
+delimiter = "\t"
+header = true
+word_column = "Hakusana"
+# Drop the interjections (ah, hmm, ...). They are poor password words.
+filters = [{ column = "Sanaluokka", not_equals = "interjektio" }]
+
+[[sources.files]]
+url = "https://web.archive.org/web/20250804194704id_/https://kaino.kotus.fi/lataa/nykysuomensanalista2024.txt"
+sha256 = "bfa3d6a630fdff100d7765ee057f55f9b5b0c25045dbdfa809d3e4d1b4473cb3"

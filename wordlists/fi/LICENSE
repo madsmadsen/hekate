@@ -1,0 +1,22 @@
+Word list license: fi (Suomi)
+=============================
+
+The files words.txt and words-ascii.txt in this folder are made from the sources below.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+The license of each source applies to the words that come from that source.
+
+You may use this list for any purpose, including commercial use. You must give the credit of CREDITS.md, link the licenses, and say that the list was changed.
+
+Sources
+-------
+
+1. Kielipankki Psycholinguistic Descriptives (lemma frequencies) (version: file of 2018-08-21 (urn:nbn:fi:lb-2018081601), role: frequency)
+   License: CC BY 4.0
+   License text: https://creativecommons.org/licenses/by/4.0/
+   Home page: https://www.kielipankki.fi/download/psychlingdesc/
+
+2. Kotus Nykysuomen sanalista 2024 (version: 2024 (copy of 2025-08-04), role: lexicon)
+   License: CC BY 4.0
+   License text: https://creativecommons.org/licenses/by/4.0/
+   Home page: https://kotus.fi/sanakirjat/kielitoimiston-sanakirja/nykysuomen-sana-aineistot/nykysuomen-sanalista/
+
