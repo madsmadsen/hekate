@@ -1,0 +1,90 @@
+# Portuguese (Portugal) word list. See wordlists/README.md for the meaning of each key.
+code = "pt-PT"
+name = "Português (Portugal)"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-záàâãçéêíóôõú"
+
+# The lexicon holds lowercase words, and capitalised names. With "exact", only lowercase entries match.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: Portuguese removes accents and tildes (ã -> a, õ -> o). ç -> c.
+[ascii]
+strip_accents = true
+
+# ---------------------------------------------------------------------------
+# Frequency source: ParlaMint 4.1, ParlaMint-PT (Portuguese parliament).
+# The tarball has the plain text of each sitting in ParlaMint-PT.txt/. Each line is
+# "utterance id <tab> text". The id has the words `parlamint` and `pt`, but these are not in
+# the lexicon, so they do not enter the list.
+# `member = ".txt"` also matches the small file ParlaMint-PT.TEI/00README.txt (542 bytes).
+# That adds each of its words once. This is too small to change a rank in a list of this size.
+# The corpus is smaller than the Dutch one (about 17 million words in the README, more
+# until March 2024), so `min_count` is 2.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "ParlaMint 4.1, ParlaMint-PT (Portuguese parliament)"
+role = "frequency"
+format = "text"
+version = "4.1"
+license = "CC BY 4.0"
+license_url = "https://creativecommons.org/licenses/by/4.0/"
+url = "https://www.clarin.si/repository/xmlui/handle/11356/1912"
+credit = "Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-PT. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0."
+archive = "tar"
+min_count = 2
+
+[[sources.files]]
+url = "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1912/ParlaMint-PT.tgz?sequence=24&isAllowed=y"
+member = ".txt"
+sha256 = "486759d580f2ab07943ea56109c786793e1e746cf9db9b002d9a5f6e1deab0b4"
+
+# ---------------------------------------------------------------------------
+# Lexicon: Natura / UMinho Hunspell pt_PT, version 20251001 (spelling after the 1990 agreement).
+# The README in the archive says: "All dictionary files and associated programs are currently
+# covered by the (GPL/LGPL/MPL), by this order", with the versions GPL 2, LGPL 2.1 and MPL 1.1.
+# The archive file COPYING holds the text of the GPL and the LGPL only. It has no MPL text.
+# PRD 7.2 says to take the license with the fewest duties, so Hekate uses MPL 1.1.
+# The link in the PRD is plain http. The server redirects it to https, so the config uses https.
+# The build expands the affix rules. The .dic entries have morphology tags after the word
+# (for example "abacate/p<tab>[CAT=nc,...]"). The Hunspell reader ignores them.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Natura / UMinho Hunspell pt_PT"
+role = "lexicon"
+format = "hunspell"
+version = "20251001"
+license = "MPL-1.1"
+license_url = "https://www.mozilla.org/en-US/MPL/1.1/"
+url = "https://natura.di.uminho.pt/wiki/doku.php?id=dicionarios:main"
+credit = "Dicionário Hunspell pt_PT, Natura project, Universidade do Minho. Copyright 2006-2009 José João Almeida, Rui Vilela, Alberto Simões. http://natura.di.uminho.pt"
+archive = "tar"
+license_text = """
+Copyright (C) 2006-2009 José João Almeida <jj@di.uminho.pt>,
+Rui Vilela <ruivilela@di.uminho.pt>,
+Alberto Simões <ambs@di.uminho.pt>
+Dep. Informática, Universidade do Minho, Portugal
+
+All dictionary files and associated programs are currently covered by
+the (GPL/LGPL/MPL), by this order. (From README_pt_PT.txt of the archive
+hunspell-pt_PT-20251001.tar.gz. Hekate uses the Mozilla Public License 1.1 option.)
+"""
+
+[[sources.files]]
+url = "https://natura.di.uminho.pt/download/sources/Dictionaries/hunspell/hunspell-pt_PT-20251001.tar.gz"
+member = "pt_PT.dic"
+part = "dic"
+sha256 = "2066157087e83264484a6d564e1d85258fe2c5eddb9713a42d6f6cf06b0a2ed9"
+
+[[sources.files]]
+url = "https://natura.di.uminho.pt/download/sources/Dictionaries/hunspell/hunspell-pt_PT-20251001.tar.gz"
+member = "pt_PT.aff"
+part = "aff"
+sha256 = "2066157087e83264484a6d564e1d85258fe2c5eddb9713a42d6f6cf06b0a2ed9"

@@ -1,0 +1,40 @@
+{
+  "code": "pt-PT",
+  "name": "Português (Portugal)",
+  "words": 7776,
+  "ascii_words": 7691,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.908955477289462,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "ParlaMint 4.1, ParlaMint-PT (Portuguese parliament)",
+      "role": "frequency",
+      "version": "4.1",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://www.clarin.si/repository/xmlui/handle/11356/1912",
+      "credit": "Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-PT. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0."
+    },
+    {
+      "name": "Natura / UMinho Hunspell pt_PT",
+      "role": "lexicon",
+      "version": "20251001",
+      "license": "MPL-1.1",
+      "license_url": "https://www.mozilla.org/en-US/MPL/1.1/",
+      "url": "https://natura.di.uminho.pt/wiki/doku.php?id=dicionarios:main",
+      "credit": "Dicionário Hunspell pt_PT, Natura project, Universidade do Minho. Copyright 2006-2009 José João Almeida, Rui Vilela, Alberto Simões. http://natura.di.uminho.pt"
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "d2be2f3292873dc1c7fabc4d7d47d70d4084dc35fbb257f3351d622e0600af8d",
+    "words_ascii": "93295490842e2aefcbf990649a33be2578b3cb3a8c85a7bb0084018fb4a33b34"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

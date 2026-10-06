@@ -1,0 +1,33 @@
+Word list license: pt-PT (Português (Portugal))
+===============================================
+
+The files words.txt and words-ascii.txt in this folder are made from the sources below.
+Hekate changed this source. Hekate filtered the words and shortened the list.
+The license of each source applies to the words that come from that source.
+
+This list is a copyleft work. It keeps the license of Natura / UMinho Hunspell pt_PT (MPL-1.1). Every changed copy of the list must use that license too.
+
+Sources
+-------
+
+1. ParlaMint 4.1, ParlaMint-PT (Portuguese parliament) (version: 4.1, role: frequency)
+   License: CC BY 4.0
+   License text: https://creativecommons.org/licenses/by/4.0/
+   Home page: https://www.clarin.si/repository/xmlui/handle/11356/1912
+
+2. Natura / UMinho Hunspell pt_PT (version: 20251001, role: lexicon)
+   License: MPL-1.1
+   License text: https://www.mozilla.org/en-US/MPL/1.1/
+   Home page: https://natura.di.uminho.pt/wiki/doku.php?id=dicionarios:main
+
+   Notice of this source:
+
+   Copyright (C) 2006-2009 José João Almeida <jj@di.uminho.pt>,
+   Rui Vilela <ruivilela@di.uminho.pt>,
+   Alberto Simões <ambs@di.uminho.pt>
+   Dep. Informática, Universidade do Minho, Portugal
+
+   All dictionary files and associated programs are currently covered by
+   the (GPL/LGPL/MPL), by this order. (From README_pt_PT.txt of the archive
+   hunspell-pt_PT-20251001.tar.gz. Hekate uses the Mozilla Public License 1.1 option.)
+
