@@ -100,6 +100,8 @@ function themeCss(rename: (code: string) => string): string {
   return rename(css);
 }
 
+const DECORATORS_IMPORT = /import \{([^}]*\bcustomElement\b[^}]*)\} from "lit\/decorators\.js";/;
+
 const NANOID_IMPORT = 'import { nanoid } from "nanoid";';
 
 const STYLE_MAP_IMPORT = JSON.stringify("lit/directives/style-map.js");
@@ -130,6 +132,7 @@ export function hekateAssets(options: AssetsOptions): Plugin {
   const wasmFile = join(root, "wasm/hekate.wasm");
   const iconsModule = join(root, "src/icons/library.ts");
   const styleMapModule = join(root, "src/csp-style-map.ts");
+  const safeDefineModule = join(root, "src/safe-define.ts");
   const rename = makeRenamer(webAwesomeTags());
   let locales: Array<{ locale: string; bytes: Buffer }> = [];
   let wasm: Buffer | null = null;
@@ -182,27 +185,34 @@ export function hekateAssets(options: AssetsOptions): Plugin {
           map: null,
         };
       }
+      if (!file.includes("/@awesome.me/webawesome/dist/chunks/")) return null;
       // SR-7: Web Awesome icon libraries fetch icons. Hekate uses its own.
-      if (file.includes("/@awesome.me/webawesome/dist/chunks/")) {
-        for (const stub of WA_ICON_STUBS) {
-          if (code.includes(stub.marker)) return { code: stub.code(iconsModule), map: null };
-        }
-        // Web Awesome makes element ids with `nanoid`, which calls `crypto.getRandomValues`. When
-        // that function is missing, defining the elements would fail (SR-3 needs an error message
-        // instead). An id only has to be unique, so a counter is enough.
-        if (code.includes(NANOID_IMPORT)) {
-          const counter = "const nanoid = ((count) => () => `n${(++count).toString(36)}`)(0);";
-          return { code: code.replace(NANOID_IMPORT, counter), map: null };
-        }
-        // SR-6: the Lit styleMap writes a style attribute on the first render. See src/csp-style-map.ts.
-        if (code.includes(STYLE_MAP_IMPORT)) {
-          return {
-            code: code.replaceAll(STYLE_MAP_IMPORT, JSON.stringify(styleMapModule)),
-            map: null,
-          };
-        }
+      for (const stub of WA_ICON_STUBS) {
+        if (code.includes(stub.marker)) return { code: stub.code(iconsModule), map: null };
       }
-      return null;
+      // The next fixes can meet in one chunk, so each one changes the result of the one before.
+      let result = code;
+      // Web Awesome makes element ids with `nanoid`, which calls `crypto.getRandomValues`. When
+      // that function is missing, defining the elements would fail (SR-3 needs an error message
+      // instead). An id only has to be unique, so a counter is enough.
+      result = result.replace(
+        NANOID_IMPORT,
+        "const nanoid = ((count) => () => `n${(++count).toString(36)}`)(0);",
+      );
+      // FR-45: the Lit `customElement` decorator throws when a name is taken. Use a safe one.
+      result = result.replace(DECORATORS_IMPORT, (_all, names: string) => {
+        const rest = names
+          .split(",")
+          .map((name) => name.trim())
+          .filter((name) => name !== "" && name !== "customElement");
+        const safe = `import { customElement } from ${JSON.stringify(safeDefineModule)};`;
+        return rest.length > 0
+          ? `import { ${rest.join(", ")} } from "lit/decorators.js";\n${safe}`
+          : safe;
+      });
+      // SR-6: the Lit styleMap writes a style attribute on the first render. See src/csp-style-map.ts.
+      result = result.replaceAll(STYLE_MAP_IMPORT, JSON.stringify(styleMapModule));
+      return result === code ? null : { code: result, map: null };
     },
     generateBundle() {
       if (wasm) this.emitFile({ type: "asset", fileName: "hekate.wasm", source: wasm });
