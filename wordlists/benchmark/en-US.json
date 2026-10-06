@@ -17,7 +17,7 @@
       "s": 0,
       "r": 50000,
       "list_size": 49954,
-      "avg_length": 7.064
+      "avg_length": 7.066
     },
     {
       "s": 500,
@@ -29,13 +29,13 @@
       "s": 500,
       "r": 30000,
       "list_size": 29463,
-      "avg_length": 6.858
+      "avg_length": 6.857
     },
     {
       "s": 500,
       "r": 50000,
       "list_size": 49454,
-      "avg_length": 7.081
+      "avg_length": 7.083
     },
     {
       "s": 1000,
@@ -53,7 +53,7 @@
       "s": 1000,
       "r": 50000,
       "list_size": 48954,
-      "avg_length": 7.092
+      "avg_length": 7.093
     },
     {
       "s": 2000,
@@ -65,13 +65,13 @@
       "s": 2000,
       "r": 30000,
       "list_size": 27964,
-      "avg_length": 6.891
+      "avg_length": 6.89
     },
     {
       "s": 2000,
       "r": 50000,
       "list_size": 47955,
-      "avg_length": 7.108
+      "avg_length": 7.109
     }
   ],
   "selection": {

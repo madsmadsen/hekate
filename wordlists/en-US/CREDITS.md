@@ -22,5 +22,5 @@ Hekate changed this source. Hekate filtered the words and shortened the list.
 
 ## Lists
 
-- `words.txt`: 7776 words, 12.92 bits per word, SHA-256 `1be884214d11c7c7beb644bfc01a966f882e10205c16bb067bc256a346b140ff`
-- `words-ascii.txt`: 7776 words, 12.92 bits per word, SHA-256 `1be884214d11c7c7beb644bfc01a966f882e10205c16bb067bc256a346b140ff`
+- `words.txt`: 7776 words, 12.92 bits per word, SHA-256 `53b499cf9f50e665e4e073570b39dc0089ee3003e0e47a8b927212c9130f8803`
+- `words-ascii.txt`: 7776 words, 12.92 bits per word, SHA-256 `53b499cf9f50e665e4e073570b39dc0089ee3003e0e47a8b927212c9130f8803`

@@ -1872,8 +1872,8 @@ forming
 parameter
 feeding
 analyzed
-evaluated
 boards
+evaluated
 shipping
 northwest
 manage
@@ -1934,8 +1934,8 @@ habitat
 reverse
 lakes
 acids
-aviation
 marks
+aviation
 log
 obtaining
 numerical
@@ -1948,8 +1948,8 @@ taxation
 picked
 hills
 furniture
-loading
 deeply
+loading
 warning
 facing
 fiction
@@ -2278,8 +2278,8 @@ feels
 dimension
 crimes
 aim
-executed
 southwest
+executed
 somewhere
 entities
 everybody
@@ -2766,8 +2766,8 @@ targets
 doses
 hired
 tumors
-asks
 adds
+asks
 menu
 clock
 reduces
@@ -3091,8 +3091,8 @@ attending
 licenses
 singing
 reforms
-puts
 styles
+puts
 consensus
 haven
 exceeds
@@ -3399,8 +3399,8 @@ grains
 equitable
 rings
 fan
-atom
 utilize
+atom
 enclosed
 buffer
 attacked
@@ -3474,9 +3474,9 @@ bits
 lecture
 elect
 postage
-aunt
 wherein
 asserted
+aunt
 gradient
 antenna
 festival
@@ -3923,8 +3923,8 @@ evolved
 balances
 grove
 beams
-attribute
 hoping
+attribute
 chip
 sheriff
 intimate
@@ -4290,8 +4290,8 @@ hip
 deaf
 revisions
 couples
-assertion
 pioneer
+assertion
 pig
 outlays
 drum
@@ -4502,8 +4502,8 @@ invisible
 lightly
 comedy
 hourly
-appoint
 wealthy
+appoint
 contempt
 patrol
 speeches
@@ -4523,8 +4523,8 @@ hunger
 stranger
 viscosity
 obstacles
-expended
 shells
+expended
 auditor
 tear
 rainfall
@@ -4715,8 +4715,8 @@ affidavit
 tapes
 unchanged
 patience
-logs
 examines
+logs
 nutrient
 bonding
 pathway
@@ -4830,8 +4830,8 @@ jimmy
 wires
 analytic
 federally
-escaped
 realities
+escaped
 flights
 veins
 rewards
@@ -4864,8 +4864,8 @@ potato
 cows
 thumb
 relieve
-excludes
 believing
+excludes
 unpaid
 commented
 arguing
@@ -5105,8 +5105,8 @@ debates
 cannon
 growers
 skull
-exchanged
 marker
+exchanged
 carpenter
 stamps
 episodes
@@ -5209,8 +5209,8 @@ garage
 nitrate
 retrieved
 impedance
-ascertain
 mars
+ascertain
 coping
 chopped
 parcel
@@ -5285,8 +5285,8 @@ dye
 casualty
 lipid
 drought
-expects
 cherry
+expects
 assisting
 markedly
 pensions
@@ -5462,9 +5462,9 @@ regimes
 plateau
 searches
 depended
-expired
 airports
 stained
+expired
 hoover
 battles
 unclear
@@ -5598,8 +5598,8 @@ routinely
 annotated
 imaginary
 unhappy
-awake
 compares
+awake
 enjoyment
 variant
 ecosystem
@@ -5796,8 +5796,8 @@ bin
 mole
 grouping
 resolving
-asthma
 utterly
+asthma
 endorsed
 freed
 advisers
@@ -5907,8 +5907,8 @@ troubles
 budgetary
 inspected
 revolt
-expose
 spinning
+expose
 griffin
 rulings
 paramount
@@ -6264,8 +6264,8 @@ warn
 microfilm
 guitar
 fir
-exploit
 bowel
+exploit
 adv
 admin
 confusing
@@ -6334,8 +6334,8 @@ spouses
 evolving
 bail
 bicycle
-extremes
 wiring
+extremes
 guaranty
 paradox
 kin
@@ -6760,8 +6760,8 @@ kicked
 stove
 triggered
 grinned
-awaiting
 dances
+awaiting
 equip
 stereo
 awkward
@@ -6879,8 +6879,8 @@ deducted
 reminds
 intimacy
 methanol
-excel
 monuments
+excel
 intrusion
 rightly
 asserting
@@ -6938,8 +6938,8 @@ portrayed
 erred
 submerged
 handy
-assigning
 classics
+assigning
 homicide
 biased
 horizons
@@ -7272,8 +7272,8 @@ graphical
 sidewalk
 vortex
 deter
-explorer
 tonnage
+explorer
 cleavage
 bidder
 inert
@@ -7747,9 +7747,9 @@ infer
 explores
 pulls
 monies
-assigns
 towel
 originate
+assigns
 separates
 dialect
 holly

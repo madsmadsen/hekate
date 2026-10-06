@@ -187,7 +187,7 @@ url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
 credit = "Google Books Ngram Viewer data ... Licensed under CC BY 3.0."
 year_min = 1950
 year_max = 2019
-min_count = 100
+min_count = 1000
 
 [[sources.files]]               # One entry for each file. The sha256 is filled in by --update-hashes.
 url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00000-of-00014.gz"

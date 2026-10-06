@@ -23,8 +23,8 @@ strip_accents = true
 # Frequency source: Google Books Ngram v3, American English (eng-us), 1-grams.
 # The build counts only plain tokens (no part-of-speech tag), lowercases them,
 # and adds the counts of the years 1950 to 2019. Modern books give modern words.
-# `min_count` drops tokens that occur fewer than 100 times in one file. This keeps
-# memory small. Rank 30,000 is far above this count.
+# `min_count` drops tokens that occur fewer than 1,000 times in one file. This keeps
+# memory small. The word at rank 50,000 has a total count of about 3,000. That is above this limit.
 # ---------------------------------------------------------------------------
 [[sources]]
 name = "Google Books Ngram v3, American English (eng-us)"
@@ -37,7 +37,7 @@ url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
 credit = "Google Books Ngram Viewer data (American English corpus eng-us, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
 year_min = 1950
 year_max = 2019
-min_count = 100
+min_count = 1000
 
 [[sources.files]]
 url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-us/1-00000-of-00014.gz"

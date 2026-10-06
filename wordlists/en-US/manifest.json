@@ -30,8 +30,8 @@
   ],
   "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
   "sha256": {
-    "words": "1be884214d11c7c7beb644bfc01a966f882e10205c16bb067bc256a346b140ff",
-    "words_ascii": "1be884214d11c7c7beb644bfc01a966f882e10205c16bb067bc256a346b140ff"
+    "words": "53b499cf9f50e665e4e073570b39dc0089ee3003e0e47a8b927212c9130f8803",
+    "words_ascii": "53b499cf9f50e665e4e073570b39dc0089ee3003e0e47a8b927212c9130f8803"
   },
   "build": {
     "xtask_version": "0.0.0",
