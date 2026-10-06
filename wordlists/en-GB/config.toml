@@ -1,0 +1,95 @@
+# English (UK) word list. See wordlists/README.md for the meaning of each key.
+code = "en-GB"
+name = "English (UK)"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-z"
+
+# English words are lowercase, so the lexicon words must be lowercase too.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: English removes accents.
+[ascii]
+strip_accents = true
+
+# ---------------------------------------------------------------------------
+# Frequency source: Google Books Ngram v3, British English (eng-gb), 1-grams.
+# The build counts only plain tokens (no part-of-speech tag), lowercases them,
+# and adds the counts of the years 1950 to 2019. Modern books give modern words.
+# `min_count` drops tokens that occur fewer than 1,000 times in one file. This keeps
+# memory small. The word at rank 50,000 has a total count of about 3,000. That is above this limit.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Google Books Ngram v3, British English (eng-gb)"
+role = "frequency"
+format = "ngram-1gram-tsv"
+version = "20200217"
+license = "CC BY 3.0"
+license_url = "https://creativecommons.org/licenses/by/3.0/"
+url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
+credit = "Google Books Ngram Viewer data (British English corpus eng-gb, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+year_min = 1950
+year_max = 2019
+min_count = 1000
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-gb/1-00000-of-00004.gz"
+sha256 = "99e2d170a1ce84eb157c63211dd04c6fc28507646c55cffd22db55bc7a85ec20"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-gb/1-00001-of-00004.gz"
+sha256 = "0aa2311e39eecf8670eee6f103511da8c87efc0f836172238179cf1d6582d219"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-gb/1-00002-of-00004.gz"
+sha256 = "47dcbe7bf660b0ed1ec5d5a337f31d82bb30cbeee46329e7d48e8e4b593e7d9b"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/eng-gb/1-00003-of-00004.gz"
+sha256 = "d361420c5b4899dcca776b08e531d0a3b5bedf8ce5cd4499019202b9ef0f77c8"
+
+# ---------------------------------------------------------------------------
+# Lexicon: SCOWL / ESDB, size 60, British spelling with "-ise" (B).
+# The tag tarball of the PRD needs Python and SQLite to make word lists. The same
+# release ships the finished Hunspell dictionary for en_GB-ise (size 60, British spelling with "-ise").
+# The build expands its affix rules. Words that SCOWL marks as rude (NOSUGGEST) are left out.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "SCOWL / ESDB (Hunspell en_GB-ise, size 60, British spelling with -ise)"
+role = "lexicon"
+format = "hunspell"
+version = "2026.02.25 (tag rel-2026.02.25)"
+license = "MIT-style permission"
+license_url = "https://github.com/en-wl/wordlist/blob/rel-2026.02.25/Copyright"
+url = "https://github.com/en-wl/wordlist"
+credit = "SCOWL and Friends. Copyright 2000-2026 by Kevin Atkinson. https://wordlist.aspell.net"
+archive = "zip"
+license_text = """
+Copyright 2000-2026 by Kevin Atkinson
+
+Permission to use, copy, modify, distribute, and sell any part of SCOWLv2, or
+word lists created from it, is hereby granted without fee, provided that the
+above copyright notice appears in all copies and that both the above
+copyright notice and this notice appear in supporting documentation.  Kevin
+Atkinson makes no representations about the suitability of this database for
+any purpose.  It is provided "as is" without express or implied warranty.
+"""
+
+[[sources.files]]
+url = "https://github.com/en-wl/wordlist/releases/download/rel-2026.02.25/hunspell-en_GB-ise-2026.02.25.zip"
+member = "en_GB-ise.dic"
+part = "dic"
+sha256 = "d6fbb91ae7824c52fb02f74d7bc2cd9092f130faec60f42326a59437fa7247a3"
+
+[[sources.files]]
+url = "https://github.com/en-wl/wordlist/releases/download/rel-2026.02.25/hunspell-en_GB-ise-2026.02.25.zip"
+member = "en_GB-ise.aff"
+part = "aff"
+sha256 = "d6fbb91ae7824c52fb02f74d7bc2cd9092f130faec60f42326a59437fa7247a3"

@@ -1,0 +1,40 @@
+{
+  "code": "en-GB",
+  "name": "English (UK)",
+  "words": 7776,
+  "ascii_words": 7776,
+  "ascii_same": true,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.92481250360578,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "Google Books Ngram v3, British English (eng-gb)",
+      "role": "frequency",
+      "version": "20200217",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html",
+      "credit": "Google Books Ngram Viewer data (British English corpus eng-gb, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+    },
+    {
+      "name": "SCOWL / ESDB (Hunspell en_GB-ise, size 60, British spelling with -ise)",
+      "role": "lexicon",
+      "version": "2026.02.25 (tag rel-2026.02.25)",
+      "license": "MIT-style permission",
+      "license_url": "https://github.com/en-wl/wordlist/blob/rel-2026.02.25/Copyright",
+      "url": "https://github.com/en-wl/wordlist",
+      "credit": "SCOWL and Friends. Copyright 2000-2026 by Kevin Atkinson. https://wordlist.aspell.net"
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "9b531f431005bbae3db0158a9c68ed420125e5f68da33edd2875dd36609db1cb",
+    "words_ascii": "9b531f431005bbae3db0158a9c68ed420125e5f68da33edd2875dd36609db1cb"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}
