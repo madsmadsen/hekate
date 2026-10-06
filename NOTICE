@@ -6,15 +6,183 @@ The word lists in wordlists/ are made from the sources below.
 Each list has its own LICENSE and CREDITS.md file.
 Hekate changed this source. Hekate filtered the words and shortened the list.
 
+* COR, Det Centrale Ordregister (version: 1.5.1.0)
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  Home page: https://ordregister.dk/
+  Credit: COR, Det Centrale Ordregister, version 1.5.1.0, https://ordregister.dk. CC0.
+  Used for: da
+
 * Google Books Ngram v3, American English (eng-us) (version: 20200217)
   License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
   Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
   Credit: Google Books Ngram Viewer data (American English corpus eng-us, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011.
   Used for: en-US
 
+* Google Books Ngram v3, British English (eng-gb) (version: 20200217)
+  License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+  Credit: Google Books Ngram Viewer data (British English corpus eng-gb, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011.
+  Used for: en-GB
+
+* Google Books Ngram v3, French (fre) (version: 20200217)
+  License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+  Credit: Google Books Ngram Viewer data (French corpus fre, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011.
+  Used for: fr-CA, fr-FR
+
+* Google Books Ngram v3, German (ger) (version: 20200217)
+  License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+  Credit: Google Books Ngram Viewer data (German corpus ger, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011.
+  Used for: de
+
+* Google Books Ngram v3, Italian (ita) (version: 20200217)
+  License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+  Credit: Google Books Ngram Viewer data (Italian corpus ita, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011.
+  Used for: it
+
+* Google Books Ngram v3, Spanish (spa) (version: 20200217)
+  License: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+  Home page: https://storage.googleapis.com/books/ngrams/books/datasetsv3.html
+  Credit: Google Books Ngram Viewer data (Spanish corpus spa, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011.
+  Used for: es
+
+* Hekate Québec word list (version: 2026-10-07)
+  License: MIT (https://opensource.org/license/mit)
+  Home page: https://github.com/madsmadsen/hekate
+  Credit: Québec French words written by the Hekate team. MIT license.
+  Used for: fr-CA
+
+* KWJP100 frequency lists (lemmas, all parts of speech) (version: commit 26d82bd8b906dfed1cfcf8f903b1650b56daeabf)
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://github.com/ipipan/kwjp100-varia/tree/main/freqlists
+  Credit: KWJP100 frequency lists, Institute of Computer Science, Polish Academy of Sciences (IPI PAN), https://github.com/ipipan/kwjp100-varia. Licensed under CC BY 4.0. Hekate counts base forms from this list and changes the format.
+  Used for: pl
+
+* Kielipankki Psycholinguistic Descriptives (lemma frequencies) (version: file of 2018-08-21 (urn:nbn:fi:lb-2018081601))
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://www.kielipankki.fi/download/psychlingdesc/
+  Credit: Psycholinguistic Descriptives, Kielipankki (The Language Bank of Finland), University of Helsinki, http://urn.fi/urn:nbn:fi:lb-2018081601. Licensed under CC BY 4.0. Hekate uses the base form counts and changes the format.
+  Used for: fi
+
+* Kotus Nykysuomen sanalista 2024 (version: 2024 (copy of 2025-08-04))
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://kotus.fi/sanakirjat/kielitoimiston-sanakirja/nykysuomen-sana-aineistot/nykysuomen-sanalista/
+  Credit: Nykysuomen sanalista, Kotimaisten kielten keskus (Kotus). Licensed under CC BY 4.0.
+  Used for: fi
+
+* LibreOffice French dictionary (Hunspell fr, Grammalecte 7.7) (version: commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4)
+  License: MPL-2.0 (https://www.mozilla.org/en-US/MPL/2.0/)
+  Home page: https://github.com/LibreOffice/dictionaries/tree/master/fr_FR
+  Credit: Dictionnaires orthographiques français 7.7, by Olivier R. and contributors (Grammalecte, https://grammalecte.net/). Licensed under MPL 2.0.
+  Used for: fr-CA, fr-FR
+
+* LibreOffice Spanish dictionary (Hunspell es_ES) (version: commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4)
+  License: MPL-1.1 (https://www.mozilla.org/en-US/MPL/1.1/)
+  Home page: https://github.com/LibreOffice/dictionaries/tree/master/es
+  Credit: Diccionario para corrección ortográfica en español de LibreOffice, by Santiago Bosio and contributors. Licensed under MPL 1.1 or later (choice of GPL, LGPL or MPL).
+  Used for: es
+
+* NB Språkbanken N-gram Bokmål (1-grams) (version: copy of 2026-10-07 (file of 2016-10-24))
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  Home page: https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-12/
+  Credit: NB Språkbanken N-gram Bokmål, from the Nasjonalbiblioteket (National Library of Norway). Released under CC0. The words were changed to lowercase and filtered.
+  Used for: nb
+
+* Natura / UMinho Hunspell pt_PT (version: 20251001)
+  License: MPL-1.1 (https://www.mozilla.org/en-US/MPL/1.1/)
+  Home page: https://natura.di.uminho.pt/wiki/doku.php?id=dicionarios:main
+  Credit: Dicionário Hunspell pt_PT, Natura project, Universidade do Minho. Copyright 2006-2009 José João Almeida, Rui Vilela, Alberto Simões. http://natura.di.uminho.pt
+  Used for: pt-PT
+
+* Norsk ordbank Bokmål 2005 (version: 20220201)
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-5/
+  Credit: Norsk ordbank Bokmål 2005 (version 20220201), from Språkrådet and the Nasjonalbiblioteket. Licensed under CC BY 4.0. Only the word forms were read, and the words were filtered.
+  Used for: nb
+
+* OpenTaal word list (Dutch) (version: 2.20.19)
+  License: BSD-3-Clause (https://raw.githubusercontent.com/OpenTaal/opentaal-wordlist/2.20.19/LICENSE.txt)
+  Home page: https://github.com/OpenTaal/opentaal-wordlist
+  Credit: OpenTaal Nederlandse woordenlijst, version 2.20.19. Copyright 2020 OpenTaal (Simon Brouwer, Sander van Geloven). https://opentaal.org
+  Used for: nl
+
+* ParlaIbero-BR: Parliamentary Speeches from Brazil (2003-2025), speeches from 2009 or later (version: 2 (released 2026-09-07))
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://doi.org/10.7910/DVN/VTXNW3
+  Credit: ParlaIbero-BR: Parliamentary Speeches from Brazil (2003-2025), version 2. Rodrigues-Silveira, Rodrigo. Harvard Dataverse, DOI 10.7910/DVN/VTXNW3. Licensed under CC BY 4.0. The text of the speeches is from the Câmara dos Deputados (Brazil), which is the source of the text. Only speeches from 2009 or later were counted, and the words were filtered.
+  Used for: pt-BR
+
+* ParlaMint 4.1, ParlaMint-BE (Belgian parliament, Dutch segments only) (version: 4.1)
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://www.clarin.si/repository/xmlui/handle/11356/1912
+  Credit: Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-BE. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0. Only the Dutch segments were used.
+  Used for: nl
+
+* ParlaMint 4.1, ParlaMint-DK (plain text) (version: 4.1)
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://www.clarin.si/repository/xmlui/handle/11356/1912
+  Credit: Erjavec, T. et al. Multilingual comparable corpora of parliamentary debates ParlaMint 4.1 (ParlaMint-DK), Slovenian language resource repository CLARIN.SI, http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0. Hekate counts the words of the speeches.
+  Used for: da
+
+* ParlaMint 4.1, ParlaMint-NL (Dutch parliament) (version: 4.1)
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://www.clarin.si/repository/xmlui/handle/11356/1912
+  Credit: Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-NL. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0.
+  Used for: nl
+
+* ParlaMint 4.1, ParlaMint-PT (Portuguese parliament) (version: 4.1)
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://www.clarin.si/repository/xmlui/handle/11356/1912
+  Credit: Erjavec, T. et al. (2024). Multilingual comparable corpora of parliamentary debates ParlaMint 4.1, ParlaMint-PT. CLARIN.SI. http://hdl.handle.net/11356/1912. Licensed under CC BY 4.0.
+  Used for: pt-PT
+
+* SALDO (saldo.xml) (version: copy of 2026-10-07 (file of 2017-09-19))
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://sprakbanken.se/en/resources/saldo
+  Credit: SALDO, Svenskt associationslexikon. Copyright Språkbanken Text, University of Gothenburg. Borin, Forsberg and Lönngren (2013), Language Resources and Evaluation 47(4). Licensed under CC BY 4.0. Only base forms were read, and the words were filtered.
+  Used for: sv
+
+* SCOWL / ESDB (Hunspell en_GB-ise, size 60, British spelling with -ise) (version: 2026.02.25 (tag rel-2026.02.25))
+  License: MIT-style permission (https://github.com/en-wl/wordlist/blob/rel-2026.02.25/Copyright)
+  Home page: https://github.com/en-wl/wordlist
+  Credit: SCOWL and Friends. Copyright 2000-2026 by Kevin Atkinson. https://wordlist.aspell.net
+  Used for: en-GB
+
 * SCOWL / ESDB (Hunspell en_US, size 60, American spelling) (version: 2026.02.25 (tag rel-2026.02.25))
   License: MIT-style permission (https://github.com/en-wl/wordlist/blob/rel-2026.02.25/Copyright)
   Home page: https://github.com/en-wl/wordlist
   Credit: SCOWL and Friends. Copyright 2000-2026 by Kevin Atkinson. https://wordlist.aspell.net
   Used for: en-US
+
+* SJP.PL word list for games (sjp-20260901) (version: 20260901)
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://sjp.pl/sl/growy/
+  Credit: Słownik SJP.PL (https://sjp.pl), word list for games, version 20260901. Licensed under CC BY 4.0 (choice of GPL 2 or CC BY 4.0).
+  Used for: pl
+
+* Språkbanken Flex (version: copy of 2026-10-07 (file of 2025-12-08))
+  License: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+  Home page: https://sprakbanken.se/en/resources/flex
+  Credit: Zechner, Niklas (2025). Flex (updated 2025-12-06). Data set, enriched and distributed by Språkbanken. https://doi.org/10.23695/7kq9-6n10. Licensed under CC BY 4.0. Column 2 (newspapers) was used. The words were changed to lowercase and filtered.
+  Used for: sv
+
+* VERO pt_BR (Hunspell, LibreOffice dictionaries) (version: commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4)
+  License: MPL (https://www.mozilla.org/en-US/MPL/)
+  Home page: https://github.com/LibreOffice/dictionaries/tree/master/pt_BR
+  Credit: VERO, Verificador Ortográfico do LibreOffice (pt_BR). Copyright (C) 2006-2013 Raimundo Santos Moura and the Brazilian LibreOffice community. Used under the Mozilla Public License (the README offers a choice of LGPL version 3 or MPL).
+  Used for: pt-BR
+
+* Wikidata Lexemes (Deutsch) (version: dump of 2026-09-30)
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  Home page: https://www.wikidata.org/wiki/Wikidata:Lexicographical_data
+  Credit: Wikidata Lexemes, dump of 2026-09-30. Lexeme data of Wikidata is available under the CC0 license.
+  Used for: de
+
+* Wikidata Lexemes (Italiano) (version: dump of 2026-09-30)
+  License: CC0 (https://creativecommons.org/publicdomain/zero/1.0/)
+  Home page: https://www.wikidata.org/wiki/Wikidata:Lexicographical_data
+  Credit: Wikidata Lexemes, dump of 2026-09-30. Lexeme data of Wikidata is available under the CC0 license.
+  Used for: it
 
