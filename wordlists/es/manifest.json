@@ -1,0 +1,40 @@
+{
+  "code": "es",
+  "name": "Español",
+  "words": 7776,
+  "ascii_words": 7596,
+  "ascii_same": false,
+  "entropy_per_word": 12.92481250360578,
+  "entropy_per_word_ascii": 12.891024190149498,
+  "s": 1000,
+  "r": 30000,
+  "sources": [
+    {
+      "name": "Google Books Ngram v3, Spanish (spa)",
+      "role": "frequency",
+      "version": "20200217",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html",
+      "credit": "Google Books Ngram Viewer data (Spanish corpus spa, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+    },
+    {
+      "name": "LibreOffice Spanish dictionary (Hunspell es_ES)",
+      "role": "lexicon",
+      "version": "commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4",
+      "license": "MPL-1.1",
+      "license_url": "https://www.mozilla.org/en-US/MPL/1.1/",
+      "url": "https://github.com/LibreOffice/dictionaries/tree/master/es",
+      "credit": "Diccionario para corrección ortográfica en español de LibreOffice, by Santiago Bosio and contributors. Licensed under MPL 1.1 or later (choice of GPL, LGPL or MPL)."
+    }
+  ],
+  "changed_note": "Hekate changed this source. Hekate filtered the words and shortened the list.",
+  "sha256": {
+    "words": "fca6deb6d54d581a5b270ab43c43385ee6cd92307aaaed34c75cd0acc7c680b2",
+    "words_ascii": "916312dd9f1c006a31cfa132d48751e64aafd8c6beca8864f5192cb12b5f673e"
+  },
+  "build": {
+    "xtask_version": "0.0.0",
+    "built_on": "2026-10-07"
+  }
+}

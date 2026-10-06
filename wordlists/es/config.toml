@@ -1,0 +1,83 @@
+# Español word list. See wordlists/README.md for the meaning of each key.
+code = "es"
+name = "Español"
+built_on = "2026-10-07"
+
+# PRD 7.1: skip the top s ranks, take words up to rank r, make a list of n words.
+# These are the proposed values. The benchmark of PRD 7.6 decides the final values.
+s = 1000
+r = 30000
+n = 7776
+min_len = 3
+max_len = 9
+alphabet = "a-záéíóúüñ"
+
+# Spanish words are lowercase, so the lexicon words must be lowercase too.
+lexicon_case = "exact"
+
+# PRD 7.4, table 7.1: Spanish removes accents. ñ becomes n, ü becomes u.
+[ascii]
+strip_accents = true
+
+[ascii.map]
+"ñ" = "n"
+"ü" = "u"
+
+# ---------------------------------------------------------------------------
+# Frequency source: Google Books Ngram v3, Spanish corpus (spa), 1-grams.
+# The build counts only plain tokens (no part-of-speech tag), lowercases them,
+# and adds the counts of the years 1950 to 2019. Modern books give modern words.
+# `min_count` drops tokens that occur fewer than 200 times in one file. This keeps
+# memory small. It is far below the count of the word at rank 30,000.
+# The corpus holds many foreign and scanning-error tokens. The lexicon removes them.
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "Google Books Ngram v3, Spanish (spa)"
+role = "frequency"
+format = "ngram-1gram-tsv"
+version = "20200217"
+license = "CC BY 3.0"
+license_url = "https://creativecommons.org/licenses/by/3.0/"
+url = "https://storage.googleapis.com/books/ngrams/books/datasetsv3.html"
+credit = "Google Books Ngram Viewer data (Spanish corpus spa, version 20200217). Copyright Google. Licensed under CC BY 3.0. Michel et al., Science 2011."
+year_min = 1950
+year_max = 2019
+min_count = 200
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/spa/1-00000-of-00003.gz"
+sha256 = "c28dfa7f433317baf75429a57b1dab1d6ec016ad325feef0f30ab4f79d63f386"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/spa/1-00001-of-00003.gz"
+sha256 = "b6396078773aa299ea010d6cfdef437a97055532df7d65c0a90914141e7ef0f6"
+
+[[sources.files]]
+url = "https://storage.googleapis.com/books/ngrams/books/20200217/spa/1-00002-of-00003.gz"
+sha256 = "720b00fde16df0854dd8ccf1a37dcc021d37a568a9c71f063cd995124d001e3e"
+
+# ---------------------------------------------------------------------------
+# Lexicon: the LibreOffice Spanish Hunspell dictionary es_ES.
+# README_hunspell_es.txt and LICENSE.md at the pinned commit say that the dictionary is offered
+# under three separate licenses: GNU GPL 3 or later, GNU LGPL 3 or later, or MPL 1.1 or later.
+# The user may choose. Hekate chooses the MPL (the file is es/MPL-1.1.txt, "MPL 1.1 or later").
+# ---------------------------------------------------------------------------
+[[sources]]
+name = "LibreOffice Spanish dictionary (Hunspell es_ES)"
+role = "lexicon"
+format = "hunspell"
+version = "commit 32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4"
+license = "MPL-1.1"
+license_url = "https://www.mozilla.org/en-US/MPL/1.1/"
+url = "https://github.com/LibreOffice/dictionaries/tree/master/es"
+credit = "Diccionario para corrección ortográfica en español de LibreOffice, by Santiago Bosio and contributors. Licensed under MPL 1.1 or later (choice of GPL, LGPL or MPL)."
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/LibreOffice/dictionaries/32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4/es/es_ES.dic"
+part = "dic"
+sha256 = "6975dddec3d5d2c676069537bc67b4b5f786c65c5d4cf6703a82acf779ac9ec1"
+
+[[sources.files]]
+url = "https://raw.githubusercontent.com/LibreOffice/dictionaries/32b006a2c22a4ac7e8ed3f03346f7b3d85a970a4/es/es_ES.aff"
+part = "aff"
+sha256 = "e73a9bf8e1383f4986a5dc9e2fbed49371c0c61f511c626d15586bd433c1cad9"
