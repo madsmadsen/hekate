@@ -6,8 +6,8 @@ license.workspace = true
 description = "Random selection, password assembly and entropy for Hekate. No I/O."
 
 [dependencies]
-rand_core = "0.9"
+rand_core = "0.10"
 
 [dev-dependencies]
-rand = { version = "0.9", default-features = false, features = ["std", "std_rng"] }
+rand = { version = "0.10", default-features = false, features = ["std", "std_rng"] }
 unicode-normalization = "0.1"

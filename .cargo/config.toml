@@ -1,6 +1,2 @@
 [alias]
 xtask = "run --package xtask --"
-
-# SR-1: getrandom uses Web Crypto (crypto.getRandomValues) on wasm32.
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg", 'getrandom_backend="wasm_js"']

@@ -5,7 +5,7 @@ use std::fmt;
 use hekate_core::{
     Capitalization, CharOptions, Generated, Separator, WordDraw, WordList, WordStyle,
 };
-use rand_core::{RngCore, impls};
+use rand_core::{Infallible, TryRng, utils};
 use sha2::{Digest, Sha256};
 
 mod generated {
@@ -62,23 +62,27 @@ impl SystemRng {
     }
 }
 
-impl RngCore for SystemRng {
-    fn next_u32(&mut self) -> u32 {
+// Infallible: a failure after the first fill panics. `new` already checked
+// that the system gives random bytes (SR-3).
+impl TryRng for SystemRng {
+    type Error = Infallible;
+
+    fn try_next_u32(&mut self) -> Result<u32, Infallible> {
         if self.pos + 4 > self.buf.len() {
             getrandom::fill(&mut self.buf).expect("secure random numbers failed");
             self.pos = 0;
         }
         let b = &self.buf[self.pos..self.pos + 4];
         self.pos += 4;
-        u32::from_le_bytes([b[0], b[1], b[2], b[3]])
+        Ok(u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
     }
 
-    fn next_u64(&mut self) -> u64 {
-        impls::next_u64_via_u32(self)
+    fn try_next_u64(&mut self) -> Result<u64, Infallible> {
+        utils::next_u64_via_u32(self)
     }
 
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
-        impls::fill_bytes_via_next(self, dest)
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Infallible> {
+        utils::fill_bytes_via_next_word(dest, || self.try_next_u32())
     }
 }
 

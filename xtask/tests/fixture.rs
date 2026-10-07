@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 use hekate_core::{WordList, WordStyle, draw_words};
-use rand_core::{RngCore, impls};
+use rand_core::{Infallible, TryRng, utils};
 
 fn xtask(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_xtask"))
@@ -134,19 +134,20 @@ fn nfr_10_fixture_build_is_reproducible() {
 /// A tiny deterministic generator for the test. The real component uses Web Crypto.
 struct TestRng(u64);
 
-impl RngCore for TestRng {
-    fn next_u32(&mut self) -> u32 {
-        self.next_u64() as u32
+impl TryRng for TestRng {
+    type Error = Infallible;
+    fn try_next_u32(&mut self) -> Result<u32, Infallible> {
+        Ok(self.try_next_u64()? as u32)
     }
-    fn next_u64(&mut self) -> u64 {
+    fn try_next_u64(&mut self) -> Result<u64, Infallible> {
         self.0 = self
             .0
             .wrapping_mul(6_364_136_223_846_793_005)
             .wrapping_add(1);
-        self.0 >> 11 ^ self.0
+        Ok(self.0 >> 11 ^ self.0)
     }
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
-        impls::fill_bytes_via_next(self, dest);
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Infallible> {
+        utils::fill_bytes_via_next_word(dest, || self.try_next_u64())
     }
 }
 

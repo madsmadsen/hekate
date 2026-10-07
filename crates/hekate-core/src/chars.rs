@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use rand_core::RngCore;
+use rand_core::Rng;
 
 use crate::sample::uniform_below;
 use crate::{Error, Generated};
@@ -77,7 +77,7 @@ fn selected_sets(o: &CharOptions) -> Vec<Set> {
 /// The password must contain a character from each selected set. Hekate
 /// draws a new password until this is true. It never edits single
 /// characters, because that would add bias (FR-63).
-pub fn generate_characters<R: RngCore + ?Sized>(
+pub fn generate_characters<R: Rng + ?Sized>(
     rng: &mut R,
     opts: &CharOptions,
 ) -> Result<Generated, Error> {
@@ -100,7 +100,7 @@ pub fn generate_characters<R: RngCore + ?Sized>(
 ///
 /// With `no_repeat`, two neighbors never have the same case group (FR-66).
 /// The sets must have at least two case groups.
-fn pick<R: RngCore + ?Sized>(
+fn pick<R: Rng + ?Sized>(
     rng: &mut R,
     sets: &[Set],
     length: usize,
@@ -147,7 +147,7 @@ fn pick<R: RngCore + ?Sized>(
 /// `C` is the number of characters and `smallest` is the smallest case group.
 /// A try is rejected if the draw is beyond the characters that can follow.
 /// So every valid password has the same chance `1 / (C * (C - smallest)^(L - 1))` (SR-2).
-fn pick_no_repeat<R: RngCore + ?Sized>(
+fn pick_no_repeat<R: Rng + ?Sized>(
     rng: &mut R,
     all: &[(char, char)],
     group_size: &[usize],

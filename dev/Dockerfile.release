@@ -6,7 +6,7 @@ FROM rust:${RUST_VERSION}-bookworm
 
 ARG NODE_VERSION
 ARG PNPM_VERSION
-ARG WASM_BINDGEN_VERSION=0.2.100
+ARG WASM_BINDGEN_VERSION=0.2.129
 
 # Node.js
 RUN arch="$(dpkg --print-architecture)" \

@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use rand_core::RngCore;
+use rand_core::Rng;
 
 use crate::chars::SYMBOLS;
 use crate::sample::uniform_below;
@@ -211,7 +211,7 @@ pub struct WordDraw {
 /// The values come from the generator in a fixed order: the word indexes,
 /// one style bit for each word, the number, its slot, the symbol, its slot,
 /// and the order of the number and the symbol.
-pub fn draw_words<R: RngCore + ?Sized>(
+pub fn draw_words<R: Rng + ?Sized>(
     rng: &mut R,
     list: &WordList,
     words: usize,
@@ -383,7 +383,7 @@ mod tests {
     }
 
     /// One draw and one render, as the old single call did.
-    fn one_password<R: RngCore + ?Sized>(
+    fn one_password<R: Rng + ?Sized>(
         rng: &mut R,
         list: &WordList,
         words: usize,
@@ -645,17 +645,18 @@ mod tests {
     /// A generator that returns fixed values. A test uses it to pick exact words and styles.
     struct Fixed(Vec<u32>, usize);
 
-    impl RngCore for Fixed {
-        fn next_u32(&mut self) -> u32 {
+    impl rand_core::TryRng for Fixed {
+        type Error = rand_core::Infallible;
+        fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
             let v = self.0[self.1];
             self.1 += 1;
-            v
+            Ok(v)
         }
-        fn next_u64(&mut self) -> u64 {
-            rand_core::impls::next_u64_via_u32(self)
+        fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+            rand_core::utils::next_u64_via_u32(self)
         }
-        fn fill_bytes(&mut self, dest: &mut [u8]) {
-            rand_core::impls::fill_bytes_via_next(self, dest)
+        fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
+            rand_core::utils::fill_bytes_via_next_word(dest, || self.try_next_u32())
         }
     }
 

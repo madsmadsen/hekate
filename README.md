@@ -76,7 +76,7 @@ You need:
 - Rust (the version in `rust-toolchain.toml`)
 - Node.js (the version in `.node-version`)
 - pnpm (the version in `package.json`)
-- the `wasm-bindgen` command line tool, in the version of `Cargo.lock` (0.2.100)
+- the `wasm-bindgen` command line tool, in the version of `Cargo.lock` (0.2.129)
 
 ```sh
 pnpm install

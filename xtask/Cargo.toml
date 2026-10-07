@@ -19,8 +19,8 @@ toml = "1.1.6"
 toml_edit = "0.25.15"
 unicode-normalization = "0.1.25"
 ureq = { version = "3", default-features = false, features = ["rustls"] }
-zip = { version = "2", default-features = false, features = ["deflate"] }
+zip = { version = "8", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 hekate-core = { path = "../crates/hekate-core" }
-rand_core = "0.9"
+rand_core = "0.10"

@@ -1,4 +1,4 @@
-use rand_core::RngCore;
+use rand_core::Rng;
 
 /// Return a uniform random number in `0..n` with rejection sampling.
 ///
@@ -7,7 +7,7 @@ use rand_core::RngCore;
 ///
 /// # Panics
 /// Panics if `n` is 0.
-pub fn uniform_below<R: RngCore + ?Sized>(rng: &mut R, n: u32) -> u32 {
+pub fn uniform_below<R: Rng + ?Sized>(rng: &mut R, n: u32) -> u32 {
     assert!(n > 0, "n must be greater than 0");
     let reject_below = n.wrapping_neg() % n;
     loop {
@@ -56,20 +56,21 @@ pub(crate) mod test_util {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand_core::{RngCore, impls};
+    use rand_core::{Infallible, TryRng, utils};
 
     struct Fixed(Vec<u32>, usize);
-    impl RngCore for Fixed {
-        fn next_u32(&mut self) -> u32 {
+    impl TryRng for Fixed {
+        type Error = Infallible;
+        fn try_next_u32(&mut self) -> Result<u32, Infallible> {
             let v = self.0[self.1];
             self.1 += 1;
-            v
+            Ok(v)
         }
-        fn next_u64(&mut self) -> u64 {
-            impls::next_u64_via_u32(self)
+        fn try_next_u64(&mut self) -> Result<u64, Infallible> {
+            utils::next_u64_via_u32(self)
         }
-        fn fill_bytes(&mut self, dest: &mut [u8]) {
-            impls::fill_bytes_via_next(self, dest)
+        fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Infallible> {
+            utils::fill_bytes_via_next_word(dest, || self.try_next_u32())
         }
     }
 

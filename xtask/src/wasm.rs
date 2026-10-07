@@ -54,7 +54,7 @@ pub fn run(_args: &[String]) -> Result<()> {
     if which("wasm-bindgen").is_none() {
         bail!(
             "wasm-bindgen is not on PATH. Install it with: \
-             cargo install wasm-bindgen-cli --version 0.2.100"
+             cargo install wasm-bindgen-cli --version 0.2.129"
         );
     }
     let out_dir = root.join("packages/component/wasm");
