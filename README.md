@@ -275,6 +275,8 @@ docker run --rm --name hekate-dev \
 
 `dev/run.sh` runs the same two commands. CI uses the same image and the same configuration for the end-to-end tests. The tests make HTTP errors and changed bytes with Playwright, not with the server.
 
+If <http://localhost:8080> gives an empty reply or "connection reset", another program already uses that port on your computer. The server itself is fine: check with `docker exec hekate-dev wget -qO- http://127.0.0.1:8080/`. Run `lsof -nP -iTCP:8080 -sTCP:LISTEN` to see who uses the port. Then use another port for the demo page, for example `HEKATE_DEMO_PORT=18080 dev/run.sh` and open <http://localhost:18080>. Port 8081 stays the same, because the demo page loads the component from it. The end-to-end tests need ports 8080 and 8081.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules of development. Report security problems as described in [SECURITY.md](SECURITY.md).
 
 ## License
