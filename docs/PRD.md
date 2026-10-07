@@ -160,7 +160,7 @@ The licenses of the word list sources require this credit (see section 7.2). The
 | FR-47 | P1 | Look and feel. The website owner changes colors, fonts, and spacing with CSS custom properties and `::part()` selectors. A CSS custom property is a variable in CSS. A `::part()` selector styles a named element inside a shadow root. The README lists all supported properties and parts. The `theme` attribute selects `light`, `dark`, or `auto`. The default is `auto`, which follows `prefers-color-scheme`. | Automated: A test page sets each listed property and part. The computed value of the target element equals the set value. A CI test compares the README list with the properties and parts that the code declares. The two lists are equal. |
 | FR-49 | P0 | Width of the parent element. The component works when its parent element is 320 px wide or wider. It uses container queries to change its layout, not the width of the screen. A container query is a CSS rule that depends on the size of the parent element. | Automated: A test shows the component in parent elements that are 320 px, 480 px, and 800 px wide. At each width, the component has no horizontal scroll bar. All controls are inside the box of the component. No text element has a `scrollWidth` larger than its `clientWidth`. |
 | FR-50 | P0 | Web Awesome names. Hekate registers all Web Awesome elements that it uses under new names with the prefix `hekate-wa-`, for example `hekate-wa-button`. Hekate never registers a `wa-*` name. The build changes the names in the templates, the CSS, and the internal references of Web Awesome. | Automated: A test page loads a different version of Web Awesome before the component, and a second test page loads it after the component. On each page, a `wa-button` of the page keeps its computed CSS. `customElements.get("wa-button")` returns the class of the page. The component makes a password. Hekate defines no `wa-*` element. |
-| FR-51 | P0 | Version and release. The version of a release is the UTC time of the release commit, in the form `YYYY.MM.DD-HHMM`, for example `2026.10.06-1432`. The git tag is `v<version>`. A maintainer makes a release when the maintainer pushes a tag. The workflow `.github/workflows/release.yml` then builds `dist/<version>/` and attaches it as an archive to the release. `CHANGELOG.md` has one entry for each version. | Automated: The release workflow computes the version from the commit time. It stops if the tag is different. It stops if `CHANGELOG.md` has no entry for the version. The Credits dialog shows the version. |
+| FR-51 | P0 | Version and release. The version of a release is the UTC time of the release commit, in the form `YYYY.MM.DD-HHMM`, for example `2026.10.06-1432`. The git tag is `v<version>`. A maintainer makes a release when the maintainer pushes a tag. The maintainer then runs `cargo xtask dist`, which builds `dist/<version>/`. `CHANGELOG.md` has one entry for each version. | Automated: The release build computes the version from the commit time. It stops if the tag is different. It stops if `CHANGELOG.md` has no entry for the version. The Credits dialog shows the version. |
 
 FR-48 is not used.
 
@@ -656,7 +656,6 @@ hekate/
 ├── .cargo/
 │   └── config.toml           Alias for `cargo xtask`. Sets the getrandom_backend="wasm_js" cfg for wasm32.
 ├── .github/
-│   ├── workflows/            ci.yml, release.yml
 │   ├── ISSUE_TEMPLATE/       Bug, new language, translation, word list problem
 │   └── pull_request_template.md
 ├── apps/
@@ -807,9 +806,9 @@ The repository follows these rules:
 - `CHANGELOG.md` has one entry for each version (FR-51).
 - The README has a section for website owners. It covers the script tag with SRI (SR-13), the fallback text (FR-86), and all attributes. It also covers the CSS custom properties and parts, the minimum CSP, the required response headers, and the trust rules of SR-11.
 - The README tells users that Hekate does not clear the clipboard (SR-8).
-- A maintainer makes a release when the maintainer pushes a tag. `.github/workflows/release.yml` then builds `dist/<version>/` and attaches the archive to the release (FR-51).
+- A maintainer makes a release when the maintainer pushes a tag. The maintainer then runs `cargo xtask dist`, which builds `dist/<version>/` (FR-51).
 
-CI on GitHub Actions does these steps:
+The CI of the project does these steps:
 
 1. Format (`cargo fmt` and Prettier).
 2. Lint (`clippy` and ESLint).

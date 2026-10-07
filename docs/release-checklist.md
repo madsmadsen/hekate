@@ -1,6 +1,6 @@
 # Release checklist
 
-This file has the results of all Manual criteria of the [PRD](PRD.md) for each release. The release workflow (`.github/workflows/release.yml`) stops if the entry for the version is not complete. The script `scripts/check-release-checklist.mjs` does this check.
+This file has the results of all Manual criteria of the [PRD](PRD.md) for each release. The release build stops if the entry for the version is not complete. The script `scripts/check-release-checklist.mjs` does this check.
 
 ## How to use this file
 

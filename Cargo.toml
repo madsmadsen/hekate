@@ -6,6 +6,7 @@ members = ["crates/hekate-core", "crates/hekate-wasm", "xtask"]
 version = "0.0.0"
 edition = "2024"
 license = "MIT"
+authors = ["Mads Madsen"]
 repository = "https://github.com/madsmadsen/hekate"
 
 [profile.release]
