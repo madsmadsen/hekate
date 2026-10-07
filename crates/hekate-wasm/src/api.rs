@@ -2,7 +2,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 
-use hekate_core::{Capitalization, CharOptions, Generated, Separator, WordList, WordOptions};
+use hekate_core::{
+    Capitalization, CharOptions, Generated, Separator, WordDraw, WordList, WordStyle,
+};
 use rand_core::{RngCore, impls};
 use sha2::{Digest, Sha256};
 
@@ -116,10 +118,25 @@ fn load_checked(key: String, bytes: &[u8], expected: Option<&str>) -> Result<(),
     Ok(())
 }
 
-pub fn generate_words(
+/// Choose the random values of a word password (FR-11).
+pub fn draw_words(
     lang: &str,
     ascii: bool,
     words: usize,
+    no_repeat: bool,
+) -> Result<WordDraw, ApiError> {
+    let mut rng = SystemRng::new()?;
+    let key = key(lang, ascii);
+    LISTS.with(|l| {
+        let lists = l.borrow();
+        let list = lists.get(&key).ok_or(ApiError::NotLoaded(key))?;
+        Ok(hekate_core::draw_words(&mut rng, list, words, no_repeat)?)
+    })
+}
+
+/// Build the password of a draw for a style. The words are always the same.
+pub fn render_words(
+    draw: &WordDraw,
     separator: &str,
     capitalization: &str,
     number: bool,
@@ -139,26 +156,19 @@ pub fn generate_words(
         "random" => Capitalization::Random,
         _ => return Err(ApiError::BadOption("capitalization")),
     };
-    let opts = WordOptions {
-        words,
+    Ok(draw.render(&WordStyle {
         separator,
         capitalization,
         number,
         symbol,
-    };
-    let mut rng = SystemRng::new()?;
-    let key = key(lang, ascii);
-    LISTS.with(|l| {
-        let lists = l.borrow();
-        let list = lists.get(&key).ok_or(ApiError::NotLoaded(key))?;
-        Ok(hekate_core::generate_words(&mut rng, list, &opts)?)
-    })
+    }))
 }
 
 pub fn generate_characters(
     length: usize,
     charsets: u8,
     avoid_similar: bool,
+    no_repeat: bool,
 ) -> Result<Generated, ApiError> {
     let opts = CharOptions {
         length,
@@ -167,6 +177,7 @@ pub fn generate_characters(
         digits: charsets & 4 != 0,
         symbols: charsets & 8 != 0,
         avoid_similar,
+        no_repeat,
     };
     let mut rng = SystemRng::new()?;
     Ok(hekate_core::generate_characters(&mut rng, &opts)?)
@@ -187,7 +198,7 @@ mod tests {
         let err = load_checked("t".into(), LIST.as_bytes(), Some(&hash("other"))).unwrap_err();
         assert_eq!(err, ApiError::HashMismatch("t".into()));
         assert_eq!(
-            generate_words("t", false, 5, "none", "title", false, false).unwrap_err(),
+            draw_words("t", false, 5, false).unwrap_err(),
             ApiError::NotLoaded("t".into())
         );
     }
@@ -211,7 +222,8 @@ mod tests {
     #[test]
     fn fr_1_generate_uses_the_loaded_list() {
         load_checked("t4".into(), LIST.as_bytes(), Some(&hash(LIST))).unwrap();
-        let g = generate_words("t4", false, 4, "-", "lower", false, false).unwrap();
+        let draw = draw_words("t4", false, 4, false).unwrap();
+        let g = render_words(&draw, "-", "lower", false, false).unwrap();
         for w in g.text.split('-') {
             assert!(LIST.lines().any(|l| l == w), "{w}");
         }
@@ -219,20 +231,51 @@ mod tests {
 
     #[test]
     fn fr_42_bad_option_names_are_errors() {
+        load_checked("t7".into(), LIST.as_bytes(), Some(&hash(LIST))).unwrap();
+        let draw = draw_words("t7", false, 4, false).unwrap();
         assert!(matches!(
-            generate_words("t4", false, 4, "x", "lower", false, false),
+            render_words(&draw, "x", "lower", false, false),
             Err(ApiError::BadOption("separator"))
         ));
         assert!(matches!(
-            generate_words("t4", false, 4, "-", "x", false, false),
+            render_words(&draw, "-", "x", false, false),
             Err(ApiError::BadOption("capitalization"))
         ));
     }
 
     #[test]
     fn fr_62_charset_mask_selects_sets() {
-        let g = generate_characters(30, 4, false).unwrap();
+        let g = generate_characters(30, 4, false, false).unwrap();
         assert!(g.text.chars().all(|c| c.is_ascii_digit()));
-        assert!(generate_characters(30, 0, false).is_err());
+        assert!(generate_characters(30, 0, false, false).is_err());
+    }
+
+    #[test]
+    fn fr_11_render_keeps_the_words_of_the_draw() {
+        load_checked("t5".into(), LIST.as_bytes(), Some(&hash(LIST))).unwrap();
+        let draw = draw_words("t5", false, 4, false).unwrap();
+        let words = |g: &Generated| g.text.replace('-', "").to_lowercase();
+        let a = render_words(&draw, "-", "lower", false, false).unwrap();
+        let b = render_words(&draw, "-", "title", false, false).unwrap();
+        assert_eq!(words(&a), words(&b));
+        assert_ne!(a.text, b.text);
+    }
+
+    #[test]
+    fn fr_66_no_repeat_applies_to_characters() {
+        for _ in 0..200 {
+            let g = generate_characters(30, 4, false, true).unwrap();
+            let digits: Vec<char> = g.text.chars().collect();
+            assert!(digits.windows(2).all(|p| p[0] != p[1]), "{}", g.text);
+        }
+    }
+
+    #[test]
+    fn fr_12_no_repeat_applies_to_words() {
+        load_checked("t6".into(), LIST.as_bytes(), Some(&hash(LIST))).unwrap();
+        let draw = draw_words("t6", false, 4, true).unwrap();
+        let g = render_words(&draw, "none", "lower", true, true).unwrap();
+        let chars: Vec<char> = g.text.chars().collect();
+        assert!(chars.windows(2).all(|p| p[0] != p[1]), "{}", g.text);
     }
 }

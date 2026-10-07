@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use hekate_core::{WordList, WordOptions, generate_words};
+use hekate_core::{WordList, WordStyle, draw_words};
 use rand_core::{RngCore, impls};
 
 fn xtask(args: &[&str]) -> Output {
@@ -159,7 +159,9 @@ fn nfr_10_fixture_language_makes_passwords() {
     let words: Vec<&str> = text.lines().collect();
     let mut rng = TestRng(7);
     for _ in 0..200 {
-        let pw = generate_words(&mut rng, &list, &WordOptions::default()).unwrap();
+        let pw = draw_words(&mut rng, &list, 5, false)
+            .unwrap()
+            .render(&WordStyle::default());
         // The password has 5 words in PascalCase. Each part must come from the list.
         let lower = pw.text.to_lowercase();
         let mut rest = lower.as_str();

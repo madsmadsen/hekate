@@ -4,7 +4,7 @@
 //! developer machine, add `--cfg hekate_node` to RUSTFLAGS.
 #![cfg(target_arch = "wasm32")]
 
-use hekate_wasm::{generate_characters, generate_words, load_wordlist};
+use hekate_wasm::{draw_words, generate_characters, load_wordlist};
 use wasm_bindgen_test::*;
 
 #[cfg(not(hekate_node))]
@@ -16,8 +16,10 @@ const EN_US: &[u8] = include_bytes!("../../../wordlists/en-US/words.txt");
 fn nfr_5_fr_1_word_password_comes_from_the_loaded_list() {
     load_wordlist("en-US", false, EN_US).unwrap_or_else(|_| panic!("load failed"));
     let text = core::str::from_utf8(EN_US).unwrap();
-    let g = generate_words("en-US", false, 5, "-", "lower", false, false)
-        .unwrap_or_else(|_| panic!("generate failed"));
+    let draw = draw_words("en-US", false, 5, false).unwrap_or_else(|_| panic!("draw failed"));
+    let g = draw
+        .render("-", "lower", false, false)
+        .unwrap_or_else(|_| panic!("render failed"));
     let password = g.password();
     assert_eq!(password.split('-').count(), 5);
     for word in password.split('-') {
@@ -29,8 +31,8 @@ fn nfr_5_fr_1_word_password_comes_from_the_loaded_list() {
 #[wasm_bindgen_test]
 fn nfr_5_sr_1_two_passwords_differ() {
     load_wordlist("en-US", false, EN_US).unwrap_or_else(|_| panic!("load failed"));
-    let a = generate_characters(20, 15, false).unwrap_or_else(|_| panic!("generate failed"));
-    let b = generate_characters(20, 15, false).unwrap_or_else(|_| panic!("generate failed"));
+    let a = generate_characters(20, 15, false, false).unwrap_or_else(|_| panic!("generate failed"));
+    let b = generate_characters(20, 15, false, false).unwrap_or_else(|_| panic!("generate failed"));
     assert_ne!(a.password(), b.password());
 }
 
@@ -43,7 +45,7 @@ fn nfr_5_sr_5_changed_byte_is_refused() {
 
 #[wasm_bindgen_test]
 fn nfr_5_fr_63_character_password_has_each_selected_set() {
-    let g = generate_characters(8, 15, false).unwrap_or_else(|_| panic!("generate failed"));
+    let g = generate_characters(8, 15, false, false).unwrap_or_else(|_| panic!("generate failed"));
     let kinds = g.kinds();
     for k in ['l', 'u', 'd', 'y'] {
         assert!(kinds.contains(k), "{kinds}");

@@ -9,9 +9,9 @@ mod sample;
 mod words;
 
 pub use chars::{CharOptions, SYMBOLS, generate_characters};
-pub use entropy::{Strength, crack_seconds};
+pub use entropy::{Strength, crack_seconds, naive_entropy};
 pub use sample::uniform_below;
-pub use words::{Capitalization, Separator, WordList, WordOptions, generate_words};
+pub use words::{Capitalization, Separator, WordDraw, WordList, WordStyle, draw_words};
 
 /// Kind letters, one per Unicode code point of the password.
 ///
@@ -25,15 +25,38 @@ pub struct Generated {
     pub text: String,
     pub kinds: Kinds,
     pub entropy_bits: f64,
+    /// Entropy for an attacker who knows nothing about the password (FR-24).
+    pub naive_bits: f64,
 }
 
 impl Generated {
+    /// Build a password and compute `naive_bits` from its text (FR-24).
+    pub fn new(text: String, kinds: Kinds, entropy_bits: f64) -> Self {
+        let naive_bits = naive_entropy(&text);
+        Self {
+            text,
+            kinds,
+            entropy_bits,
+            naive_bits,
+        }
+    }
+
     pub fn crack_seconds(&self) -> f64 {
         crack_seconds(self.entropy_bits)
     }
 
     pub fn strength(&self) -> Strength {
         Strength::from_bits(self.entropy_bits)
+    }
+
+    /// Time to crack for an attacker who knows nothing about the password (FR-24).
+    pub fn naive_crack_seconds(&self) -> f64 {
+        crack_seconds(self.naive_bits)
+    }
+
+    /// Strength label for an attacker who knows nothing about the password (FR-24).
+    pub fn naive_strength(&self) -> Strength {
+        Strength::from_bits(self.naive_bits)
     }
 }
 

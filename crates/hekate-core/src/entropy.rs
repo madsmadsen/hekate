@@ -6,6 +6,38 @@ pub fn crack_seconds(bits: f64) -> f64 {
     (bits - 1.0).exp2() / GUESSES_PER_SECOND
 }
 
+/// Entropy in bits for an attacker who knows nothing about the password (FR-24).
+///
+/// The attacker tries every password of the same length that uses only the
+/// character groups in the password (Appendix A.3).
+pub fn naive_entropy(text: &str) -> f64 {
+    // Group sizes: lowercase, capitals, digits, other printable ASCII, all others.
+    let mut present = [false; 5];
+    let mut length = 0usize;
+    for c in text.chars() {
+        length += 1;
+        let group = match c {
+            'a'..='z' => 0,
+            'A'..='Z' => 1,
+            '0'..='9' => 2,
+            ' '..='~' => 3,
+            _ => 4,
+        };
+        present[group] = true;
+    }
+    const SIZES: [u32; 5] = [26, 26, 10, 33, 190];
+    let pool: u32 = present
+        .iter()
+        .zip(SIZES)
+        .filter(|(on, _)| **on)
+        .map(|(_, size)| size)
+        .sum();
+    if length == 0 {
+        return 0.0;
+    }
+    length as f64 * f64::from(pool).log2()
+}
+
 /// Strength label (FR-22).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Strength {
@@ -74,14 +106,34 @@ mod tests {
 
     #[test]
     fn fr_21_generated_reports_the_crack_time_of_its_entropy() {
-        let g = crate::Generated {
-            text: String::new(),
-            kinds: String::new(),
-            entropy_bits: 41.0,
-        };
+        let g = crate::Generated::new(String::new(), String::new(), 41.0);
         // 2^(41 - 1) / 10^10 seconds.
         let expected = 2f64.powi(40) / 1e10;
         assert!((g.crack_seconds() - expected).abs() < 1e-9 * expected);
         assert_eq!(g.crack_seconds(), crack_seconds(41.0));
+    }
+
+    #[test]
+    fn fr_24_naive_entropy_examples() {
+        let h = |t: &str| naive_entropy(t);
+        assert!((h("BraveMapleRiverCloudStone") - 142.5).abs() < 0.05);
+        assert!((h("Brave-Maple-42-River!") - 138.0).abs() < 0.05);
+        assert!((h("aB3!efgh") - 52.6).abs() < 0.05);
+        assert!((h("smörgås-tårta-fika") - 143.3).abs() < 0.05);
+    }
+
+    #[test]
+    fn fr_24_naive_entropy_of_an_empty_text_is_zero() {
+        assert_eq!(naive_entropy(""), 0.0);
+    }
+
+    #[test]
+    fn fr_24_naive_entropy_counts_each_group_once() {
+        // One lowercase group of 26: 3 * log2(26), however often the group repeats.
+        assert!((naive_entropy("abc") - 3.0 * 26f64.log2()).abs() < 1e-9);
+        // Space is in the group of 33 other printable ASCII characters.
+        assert!((naive_entropy(" ") - 33f64.log2()).abs() < 1e-9);
+        // A character outside printable ASCII uses the group of 190.
+        assert!((naive_entropy("é") - 190f64.log2()).abs() < 1e-9);
     }
 }
