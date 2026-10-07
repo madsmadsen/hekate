@@ -1,7 +1,7 @@
 // End-to-end tests for Hekate (PRD section 9, NFR-4).
 // Playwright does not start the servers. Start the nginx server of dev/ first: see README.md.
-//   http://localhost:8080  the demo page (the host page)
-//   http://localhost:8081  the asset host (dist/)
+//   http://localhost:18080  the demo page (the host page)
+//   http://localhost:18081  the asset host (dist/)
 import { defineConfig, devices } from "@playwright/test";
 
 const workers = process.env.E2E_WORKERS ? Number(process.env.E2E_WORKERS) : undefined;
@@ -19,7 +19,7 @@ export default defineConfig({
     ? [["list"], ["html", { open: "never", outputFolder: "playwright-report" }]]
     : [["list"]],
   use: {
-    baseURL: "http://localhost:8080",
+    baseURL: "http://localhost:18080",
     locale: "en-US",
     trace: "retain-on-failure",
     // The tests never use the network outside the two local origins.
@@ -32,7 +32,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         launchOptions: {
           // Test pages that `page.route()` makes have no known IP address space. Chromium then
-          // treats them as public pages and blocks their requests to http://localhost:8081
+          // treats them as public pages and blocks their requests to http://localhost:18081
           // ("Local Network Access"). Pages that nginx serves are not affected. This flag only
           // switches that check off for the tests.
           args: ["--disable-features=LocalNetworkAccessChecks"],

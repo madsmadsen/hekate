@@ -7,10 +7,10 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 
 docker build --tag hekate-dev "$root/dev"
 
-echo "Demo page: http://localhost:${HEKATE_DEMO_PORT:-8080}  Assets: http://localhost:8081"
+echo "Demo page: http://localhost:${HEKATE_DEMO_PORT:-18080}  Assets: http://localhost:18081"
 docker run --rm --name hekate-dev \
-  --publish "${HEKATE_DEMO_PORT:-8080}:8080" \
-  --publish 8081:8081 \
+  --publish "${HEKATE_DEMO_PORT:-18080}:18080" \
+  --publish 18081:18081 \
   --volume "$root/dist:/srv/dist:ro" \
   --volume "$root/apps/demo/out:/srv/demo:ro" \
   hekate-dev

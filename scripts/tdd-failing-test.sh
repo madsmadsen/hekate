@@ -95,7 +95,7 @@ if [ -n "$(json e2eTestFiles)" ]; then
   docker rm -f hekate-dev-tdd >/dev/null 2>&1 || true
   docker build --tag hekate-dev "$work/base/dev" >/dev/null
   docker run --detach --rm --name hekate-dev-tdd \
-    --publish 8080:8080 --publish 8081:8081 \
+    --publish 18080:18080 --publish 18081:18081 \
     --volume "$work/base/dist:/srv/dist:ro" \
     --volume "$work/base/apps/demo/out:/srv/demo:ro" \
     hekate-dev >/dev/null

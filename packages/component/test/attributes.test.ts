@@ -74,7 +74,7 @@ describe("FR-42 attribute values", () => {
   test("FR-42 assets-url accepts https, and http only on localhost", () => {
     expect(parseAssetsUrl("https://assets.example.com/1/")).toBe("https://assets.example.com/1/");
     expect(parseAssetsUrl("https://assets.example.com/1")).toBe("https://assets.example.com/1/");
-    expect(parseAssetsUrl("http://localhost:8081/x/")).toBe("http://localhost:8081/x/");
+    expect(parseAssetsUrl("http://localhost:18081/x/")).toBe("http://localhost:18081/x/");
     for (const text of [
       "http://example.com/",
       "/relative/",

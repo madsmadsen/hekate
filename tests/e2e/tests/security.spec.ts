@@ -279,7 +279,7 @@ test.describe("SR-7 no other host", () => {
     await openPlayground(page);
     await useComponent(page);
     const hosts = new Set(requests.map((r) => new URL(r.url).host));
-    expect([...hosts].sort()).toEqual(["localhost:8080", "localhost:8081"]);
+    expect([...hosts].sort()).toEqual(["localhost:18080", "localhost:18081"]);
   });
 });
 
@@ -478,7 +478,7 @@ test.describe("SR-12 cross-origin access", () => {
     page,
   }) => {
     // Another origin (other host name) that is a secure context and not mixed content.
-    const origin = "http://127.0.0.1:8080";
+    const origin = "http://127.0.0.1:18080";
     await servePage(
       page,
       `${origin}/index.html`,

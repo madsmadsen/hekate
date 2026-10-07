@@ -7,7 +7,7 @@ const width = params.get("width");
 if (width !== null && /^\d+$/.test(width)) host.style.inlineSize = `${width}px`;
 
 const assets = params.get("assets") ?? document.documentElement.dataset.assets ?? "";
-const src = params.get("src") ?? "http://localhost:8081/__VERSION__/hekate.js";
+const src = params.get("src") ?? "http://localhost:18081/__VERSION__/hekate.js";
 await import(src);
 
 const component = document.createElement("hekate-generator");

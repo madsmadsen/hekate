@@ -14,10 +14,10 @@ Every test title starts with the requirement ID, for example `FR-63 ...`. The sc
 Playwright does **not** start the servers. The tests expect the nginx server of `dev/`
 (PRD section 9.1):
 
-| Address                 | Content                                         |
-| ----------------------- | ----------------------------------------------- |
-| `http://localhost:8080` | the demo pages (`apps/demo/out/`), the base URL |
-| `http://localhost:8081` | the asset host (`dist/`)                        |
+| Address                  | Content                                         |
+| ------------------------ | ----------------------------------------------- |
+| `http://localhost:18080` | the demo pages (`apps/demo/out/`), the base URL |
+| `http://localhost:18081` | the asset host (`dist/`)                        |
 
 The tests read `dist/<version>/` and `wordlists/*/manifest.json` from the repository. They find the
 languages in the manifests. No test has a fixed list of languages. The version is the newest
@@ -43,7 +43,7 @@ version and the SRI value.
 ```sh
 docker build --tag hekate-dev dev
 docker run --rm --name hekate-dev \
-  --publish 8080:8080 --publish 8081:8081 \
+  --publish 18080:18080 --publish 18081:18081 \
   --volume "$PWD/dist:/srv/dist:ro" \
   --volume "$PWD/apps/demo/out:/srv/demo:ro" \
   hekate-dev
@@ -73,7 +73,7 @@ tests/e2e/run-in-docker.sh -g "SR-13"            # arguments go to `playwright t
 
 The script builds the image of `dev/`, starts the server with `dist/` and `apps/demo/out/`, runs the tests
 in `mcr.microsoft.com/playwright:v<version>-noble` (the test container uses the network of the server
-container, so `localhost:8080` and `localhost:8081` are the server), and removes the server
+container, so `localhost:18080` and `localhost:18081` are the server), and removes the server
 container at the end. It needs a built `dist/` and `apps/demo/out/`. The version of the image must be the
 version of `@playwright/test` (the script reads it). Set `DOCKER` if your docker command has another
 name, `E2E_WORKERS` for the number of parallel workers, and `PLAYWRIGHT_IMAGE` for another image.
@@ -99,7 +99,7 @@ name, `E2E_WORKERS` for the number of parallel workers, and `PLAYWRIGHT_IMAGE` f
 - **Web Awesome (FR-50).** The test page loads Web Awesome from `node_modules` (served by `page.route()`),
   before and after the component.
 - **Chromium and `localhost`.** Pages that `page.route()` makes have no IP address space, so Chromium blocks
-  their requests to `localhost:8081` ("Local Network Access"). `playwright.config.ts` turns this check off
+  their requests to `localhost:18081` ("Local Network Access"). `playwright.config.ts` turns this check off
   for Chromium. Pages that nginx serves are not affected.
 - **Clipboard.** Firefox and WebKit do not let Playwright grant `clipboard-read`. Most tests use a test
   double for `navigator.clipboard`. One Chromium test reads the real clipboard.
@@ -108,7 +108,7 @@ name, `E2E_WORKERS` for the number of parallel workers, and `PLAYWRIGHT_IMAGE` f
 
 | File                          | Content                                                         |
 | ----------------------------- | --------------------------------------------------------------- |
-| `playwright.config.ts`        | projects `chromium`, `firefox`, `webkit`, base URL `:8080`      |
+| `playwright.config.ts`        | projects `chromium`, `firefox`, `webkit`, base URL `:18080`     |
 | `tests/words.spec.ts`         | FR-1, FR-2, FR-3, FR-4, FR-10, NFR-6                            |
 | `tests/strength.spec.ts`      | FR-21, FR-22, FR-23, NFR-8                                      |
 | `tests/credits.spec.ts`       | FR-30                                                           |

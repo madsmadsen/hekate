@@ -213,7 +213,7 @@ style-src 'self'
 The demo page uses this CSP:
 
 ```text
-default-src 'self'; script-src 'self' 'wasm-unsafe-eval' http://localhost:8081; style-src 'self'; connect-src 'self' http://localhost:8081; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
+default-src 'self'; script-src 'self' 'wasm-unsafe-eval' http://localhost:18081; style-src 'self'; connect-src 'self' http://localhost:18081; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
 ```
 
 ### Trust in the host page
@@ -259,7 +259,7 @@ node --test 'scripts/test/*.test.mjs'   # tests of the check scripts
 
 ## Development environment
 
-The development server runs in Docker. It serves the demo page on <http://localhost:8080> and the asset files on <http://localhost:8081>. Two origins let the tests load the component from a second origin. The server only serves files. Build `dist/` and the demo page first.
+The development server runs in Docker. It serves the demo page on <http://localhost:18080> and the asset files on <http://localhost:18081>. Two origins let the tests load the component from a second origin. The server only serves files. Build `dist/` and the demo page first.
 
 ```sh
 cargo xtask dist
@@ -267,7 +267,7 @@ pnpm --filter @hekate/demo build
 
 docker build --tag hekate-dev dev
 docker run --rm --name hekate-dev \
-  --publish 8080:8080 --publish 8081:8081 \
+  --publish 18080:18080 --publish 18081:18081 \
   --volume "$PWD/dist:/srv/dist:ro" \
   --volume "$PWD/apps/demo/out:/srv/demo:ro" \
   hekate-dev
@@ -275,7 +275,7 @@ docker run --rm --name hekate-dev \
 
 `dev/run.sh` runs the same two commands. CI uses the same image and the same configuration for the end-to-end tests. The tests make HTTP errors and changed bytes with Playwright, not with the server.
 
-If <http://localhost:8080> gives an empty reply or "connection reset", another program already uses that port on your computer. The server itself is fine: check with `docker exec hekate-dev wget -qO- http://127.0.0.1:8080/`. Run `lsof -nP -iTCP:8080 -sTCP:LISTEN` to see who uses the port. Then use another port for the demo page, for example `HEKATE_DEMO_PORT=18080 dev/run.sh` and open <http://localhost:18080>. Port 8081 stays the same, because the demo page loads the component from it. The end-to-end tests need ports 8080 and 8081.
+If <http://localhost:18080> gives an empty reply or "connection reset", another program already uses that port on your computer. The server itself is fine: check with `docker exec hekate-dev wget -qO- http://127.0.0.1:18080/`. Run `lsof -nP -iTCP:18080 -sTCP:LISTEN` to see who uses the port. Then use another port for the demo page, for example `HEKATE_DEMO_PORT=28080 dev/run.sh` and open <http://localhost:28080>. Port 18081 stays the same, because the demo page loads the component from it. The end-to-end tests need ports 18080 and 18081.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules of development. Report security problems as described in [SECURITY.md](SECURITY.md).
 

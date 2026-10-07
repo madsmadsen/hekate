@@ -243,7 +243,7 @@ All error text is in the message files. The component shows each error with `<wa
 The demo page uses this CSP:
 
 ```text
-default-src 'self'; script-src 'self' 'wasm-unsafe-eval' http://localhost:8081; style-src 'self'; connect-src 'self' http://localhost:8081; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
+default-src 'self'; script-src 'self' 'wasm-unsafe-eval' http://localhost:18081; style-src 'self'; connect-src 'self' http://localhost:18081; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
 ```
 
 ## 7. Word lists
@@ -633,10 +633,10 @@ For development and tests, the team uses a web server in a Docker container. The
 The development environment follows these rules:
 
 - The repository contains a `Dockerfile` and the server configuration in `dev/`. The team does not use Docker Compose. The README gives the `docker build` and `docker run` commands that start the environment.
-- The `docker run` command mounts `dist/` and `apps/demo/` as read-only folders and publishes ports 8080 and 8081.
+- The `docker run` command mounts `dist/` and `apps/demo/` as read-only folders and publishes ports 18080 and 18081.
 - The Docker container serves the `dist/` folder and the `apps/demo/` page. It does not build them. The build pipeline builds them on the computer of the developer or in CI.
 - The Docker container sends all headers that the README requires. These headers are `Cache-Control: no-store` (SR-8), `Access-Control-Allow-Origin: *` and the `application/wasm` content type (SR-12), and the CSP of the demo page (SR-6).
-- The Docker container serves on two origins: `http://localhost:8080` for the demo page and `http://localhost:8081` for the asset files. As a result, the tests load the component from a second origin (FR-43, SR-12).
+- The Docker container serves on two origins: `http://localhost:18080` for the demo page and `http://localhost:18081` for the asset files. As a result, the tests load the component from a second origin (FR-43, SR-12).
 - CI uses the same Docker container and configuration for the end-to-end tests (FR-46). There is only one server configuration, for development and for CI.
 - The README for website owners uses the server configuration as an example of a correct deployment.
 

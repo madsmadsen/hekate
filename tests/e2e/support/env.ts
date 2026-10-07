@@ -1,6 +1,6 @@
 // Where the servers are and what the build contains.
-// The tests need the servers of dev/ (PRD 9.1): http://localhost:8080 serves apps/demo/out,
-// http://localhost:8081 serves dist/. Playwright does not start them.
+// The tests need the servers of dev/ (PRD 9.1): http://localhost:18080 serves apps/demo/out,
+// http://localhost:18081 serves dist/. Playwright does not start them.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,8 +8,8 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 export const repoRoot = path.resolve(here, "../../..");
-export const DEMO_ORIGIN = "http://localhost:8080";
-export const ASSET_ORIGIN = "http://localhost:8081";
+export const DEMO_ORIGIN = "http://localhost:18080";
+export const ASSET_ORIGIN = "http://localhost:18081";
 
 /** One source of a word list, as in `wordlists/<code>/manifest.json`. */
 export interface ManifestSource {
@@ -120,6 +120,6 @@ export function englishText(key: string, count?: number): string {
 /** The minimum CSP of the README (section "Minimum Content Security Policy"), for the demo hosts. */
 export const README_CSP = `script-src 'self' 'wasm-unsafe-eval' ${ASSET_ORIGIN}; connect-src 'self' ${ASSET_ORIGIN}; style-src 'self'`;
 
-/** The CSP of the demo page, from PRD section 6. nginx sends it on http://localhost:8080. */
+/** The CSP of the demo page, from PRD section 6. nginx sends it on http://localhost:18080. */
 export const DEMO_CSP =
-  "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' http://localhost:8081; style-src 'self'; connect-src 'self' http://localhost:8081; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'";
+  "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' http://localhost:18081; style-src 'self'; connect-src 'self' http://localhost:18081; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'";

@@ -21,7 +21,7 @@ export const WA_TAGS: string[] = waAvailable
       .map((entry) => `wa-${entry.name}`)
   : [];
 
-/** Serves the Web Awesome files under `http://localhost:8080/__e2e/wa/`. */
+/** Serves the Web Awesome files under `http://localhost:18080/__e2e/wa/`. */
 export async function serveWebAwesome(page: Page): Promise<void> {
   await page.route(`**${WA_PREFIX}**`, async (route) => {
     const relative = new URL(route.request().url()).pathname.slice(WA_PREFIX.length);

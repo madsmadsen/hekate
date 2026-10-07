@@ -4,7 +4,7 @@
 # It does these steps:
 #   1. builds the image of dev/ and starts the server with dist/ and apps/demo/out/,
 #   2. runs Playwright in the official Playwright image. The test container shares the network of
-#      the server container, so `localhost:8080` and `localhost:8081` are the server,
+#      the server container, so `localhost:18080` and `localhost:18081` are the server,
 #   3. removes the server container, also when the tests fail.
 #
 # Usage: tests/e2e/run-in-docker.sh [playwright arguments]
@@ -66,7 +66,7 @@ cleanup
 ready=0
 for _ in $(seq 1 40); do
   if "$DOCKER" run --rm --network "container:$server" busybox:latest \
-    sh -c "wget -q -O /dev/null http://localhost:8080/ && wget -q -O /dev/null http://localhost:8081/$version/sri.txt" \
+    sh -c "wget -q -O /dev/null http://localhost:18080/ && wget -q -O /dev/null http://localhost:18081/$version/sri.txt" \
     >/dev/null 2>&1; then
     ready=1
     break
