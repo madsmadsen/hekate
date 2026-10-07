@@ -27,6 +27,10 @@ Want the full list of rules? Read the [product requirements](docs/PRD.md). The [
 
 Open a page that has Hekate. A password is waiting for you.
 
+<p align="center">
+  <img src="docs/images/hekate-demo.gif" alt="A short recording of Hekate in a browser. The user makes new word passwords, picks a hyphen separator and 6 words, adds a number and a symbol, switches the language to Swedish and copies the password. Then the user switches to character mode, drags the length to 30 characters, makes a new password and copies it." width="520">
+</p>
+
 - Pick **Words** or **Characters**.
 - In word mode, pick a language and how many words you want. You can add a number and a symbol. Switch on **ASCII only** if a site does not like letters such as `é` or `ö`.
 - In word mode, changing the separator, capital letters, number, or symbol keeps your words. Only the dressing changes.
