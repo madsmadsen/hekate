@@ -3,8 +3,8 @@
 | Field | Value |
 |---|---|
 | Product | Hekate, a generator for passwords that are easy to remember |
-| Status | Draft v0.6 |
-| Date | 2026-10-06 |
+| Status | Draft v0.7 |
+| Date | 2026-10-07 |
 | License | MIT for the code. The word lists keep the license of their source (see section 7.2). |
 
 ## 1. Summary
@@ -37,7 +37,7 @@ Hekate solves these problems:
 | G1 | Make passwords from random words in the language that the user selects. |
 | G2 | Use only random numbers that are secure and unbiased. Unbiased means that each possible value has the same chance. |
 | G3 | Make all passwords on the device of the user, in Rust and WASM. After the component starts, contact only the asset host, and only to get a word list or a translation. The asset host is the web server that delivers the files of the component. |
-| G4 | Show a correct estimate of password strength. Show the entropy and the time to crack the password. Entropy is a measure of how hard a password is to guess. It is given in bits. Each extra bit doubles the number of guesses. |
+| G4 | Show a correct estimate of password strength. Show the entropy and the time to crack the password. Entropy is a measure of how hard a password is to guess. It is given in bits. Each extra bit doubles the number of guesses. Hekate also shows a second estimate for an attacker who knows nothing about the password (FR-24). |
 | G5 | Release the project as open source under the MIT license. Make the code easy for others to examine. Use only word lists that companies can use for commercial purposes (NFR-9). |
 | G6 | Give contributors a repeatable process to add a new language (NFR-10). |
 | G7 | Let any website embed Hekate as a web component, with no changes to the rest of the page. |
@@ -86,14 +86,16 @@ Word passwords are the default mode. Hekate has two modes: word mode and charact
 |---|---|---|---|
 | FR-1 | P0 | Language. The user selects one language from the list of supported languages. All words in a password come from the word list of that language. | Automated: For each supported language, a test makes 10,000 passwords. All words in these passwords are in the word list of that language. |
 | FR-2 | P0 | Default language. If the `language` attribute is set (FR-42), Hekate uses that language. If not, Hekate reads the entries of `navigator.languages` in order. It uses the first entry that matches a row of table 5.1. If no entry matches, it uses English (US). The match ignores uppercase and lowercase. Hekate skips an entry with no match, for example a malformed value. | Automated: An end-to-end test sets `navigator.languages` to each value of table 5.1. Hekate selects the word list of that row. If the value is `["sv-SE","en"]`, Hekate selects Swedish. If it is `["xx"]`, Hekate selects English (US). If it is `["PT-BR"]`, Hekate selects Portuguese (Brazil). If it is `["not a tag!","de-AT"]`, Hekate selects German. If `language="de"` is set, Hekate selects German. |
-| FR-3 | P0 | Number of words. The user can select 3 to 10 words. The default is 5. | Automated: The control accepts only values from 3 to 10. With 3 words, Hekate shows the warning text from the message file. With 4 words, the warning is not shown. The live region of SR-9 announces the warning. |
+| FR-3 | P0 | Number of words. The user can select 3 to 10 words. The default is 5. The control is a group of 8 radio buttons, "3" to "10", that look like buttons. | Automated: The group has exactly 8 radio buttons with the values 3 to 10. Selecting one sets the number of words. With 3 words, Hekate shows the warning text from the message file. With 4 words, the warning is not shown. The live region of SR-9 announces the warning. |
 | FR-4 | P0 | Separator. A token is one word, the number, or the symbol of a word password. A separator is the character between the tokens. The user selects one of these separators: `none`, `-`, `.`, `_`, or `space`. The default is `none`. | Automated: The password has the selected separator between all tokens. With the default options, the password is in PascalCase, for example `BraveMapleRiverCloudStone`. PascalCase means that the words are joined with no separator and each word starts with a capital letter. |
 | FR-5 | P0 | Capital letters. The user selects one of three styles: `lower`, `title`, or `random`. In the `lower` style, all letters are lowercase. In the `title` style, the first letter of each word is a capital. In the `random` style, a new secure random bit selects `lower` or `title` for each word. The default is `title`. Together with the default separator (`none`), the default gives PascalCase. | Automated: A test makes 100,000 words in the `random` style. It counts the words in each of the two styles. A chi-square test with 1 degree of freedom gives p > 0.001. A chi-square test is a statistical test that finds uneven results. The value p is the chance of results this uneven from a fair generator. |
 | FR-6 | P0 | Number. If this option is on, Hekate adds one random number from 0 to 99 to the password. The number is a separate token at a random position. | Automated: A test uses 5 words with the number option on. It makes 100,000 passwords. A chi-square test of the 100 numbers (99 degrees of freedom) gives p > 0.001. A separate chi-square test of the 6 positions (5 degrees of freedom) gives p > 0.001. |
 | FR-7 | P0 | Symbol. If this option is on, Hekate adds one symbol at a random position. The symbol comes from this fixed set of 16: `! # $ % & * + - = ? @ ^ _ ~ : ;` | Automated: A test uses 5 words with the symbol option on. It makes 100,000 passwords. A chi-square test of the 16 symbols (15 degrees of freedom) gives p > 0.001. A separate chi-square test of the 6 positions (5 degrees of freedom) gives p > 0.001. |
-| FR-8 | P0 | New password. A button makes a new password with the current options. A change to an option also makes a new password. This rule applies to word mode and to character mode. | Automated: A component test replaces the WASM API with a test version that counts the calls. One click gives one call. Each change of an option gives one call. Each call shows the password that the test version returns. |
+| FR-8 | P0 | New password. A button makes new words with the current options. A change to the language, the number of words, ASCII-only, "No same character twice in a row" or the mode makes new words. A change to the separator, the capital letters, the number switch or the symbol switch keeps the words (FR-11). In character mode, every change makes a new password. | Automated: A component test replaces the WASM API with a test version that counts the calls that make words and the calls that build a password from the same words. One click gives one call of each kind. A change of the language, the number of words, ASCII-only or no-repeat gives one call of each kind. A change of the separator, the capital letters, the number or the symbol gives zero calls that make words and one call that builds the password. In character mode, each change gives one call. |
 | FR-9 | P0 | Copy. One action copies the password to the clipboard. Hekate then shows the message "Copied". This rule applies to word mode and to character mode. Hekate does not clear the clipboard (SR-8). | Automated: The clipboard contains exactly the password that Hekate shows. The message shows for 2 seconds or less. |
 | FR-10 | P0 | ASCII-only option. ASCII is the set of basic English letters, digits, and symbols. Some systems do not accept other letters, such as `å`, `ü`, or `ß`. If this option is on, Hekate uses the ASCII word list of the language (section 7.4). Each language has an ASCII word list. | Automated: For each language, the ASCII list has 4,096 words or more. With the option on, all characters in the password are printable ASCII. The strength estimate uses the size of the ASCII word list. |
+| FR-11 | P0 | Keep the words. If the user changes the separator or the capital letter style, or turns the number or the symbol on or off, Hekate keeps the words of the current password and applies the new options. The number, the symbol and their places also stay the same. If the user turns the number off and then on again, the same number comes back in the same place. In the `random` style, each word keeps its own style. | Automated: A unit test makes one set of words and builds the password with each separator, each style, and each on/off combination of the number and the symbol. All 60 passwords contain the same words in the same order. An end-to-end test changes the separator, the style, the number and the symbol. The words stay the same, and the WASM function that makes words is not called. |
+| FR-12 | P0 | No same character twice in a row (word mode). If this option is on, no two characters next to each other in the password are the same letter, digit or symbol. Uppercase and lowercase do not count, so `aA` is also not allowed. Hekate uses only the words that have no letter twice in a row. It does not use the numbers 11, 22, …, 99. It does not use the symbols `-` and `_`, because they can stand next to a separator with the same character. It makes new words until no word ends with the letter that starts the next word. Hekate does this check also when there is a separator. As a result, a change of the separator keeps the words (FR-11). The default is off. Appendix A.1 gives the entropy. | Automated: A unit test makes 100,000 passwords with the option on, with each separator, the number and the symbol on. No password has the same character twice in a row (case ignored). A unit test uses the list `ab`, `ba`, `cd` with 3 words and makes 170,000 passwords. There are 17 valid passwords, and a chi-square test (16 degrees of freedom) gives p > 0.001. The entropy equals log2 of a count by brute force within 1e-9 bits. Brute force means that the test counts every possible password. |
 
 Table 5.1: Browser values and word lists. The value `*` means any region code.
 
@@ -121,10 +123,11 @@ The strength estimate applies to word mode and to character mode.
 
 | ID | Priority | Requirement | Acceptance criteria |
 |---|---|---|---|
-| FR-20 | P0 | Entropy. Hekate shows the entropy in bits. It counts only the random choices. It assumes that the attacker knows the word list, the character sets, and the options. Appendix A gives the formulas. | Automated: A table of unit test cases has one case for each formula row of Appendix A and each example of Appendix A. Each result is within 0.05 bits of the expected value. |
+| FR-20 | P0 | Entropy. Hekate shows the entropy in bits. It counts only the random choices. It assumes that the attacker knows the word list, the character sets, and the options. Appendix A gives the formulas. The component shows a note under the strength. In word mode: "This strength assumes that the attacker knows how Hekate made the password: random words from the {language} word list, with these options." In character mode: "This strength assumes that the attacker knows how Hekate made the password: random characters from the selected sets, with this length." | Automated: A table of unit test cases has one case for each formula row of Appendix A and each example of Appendix A. Each result is within 0.05 bits of the expected value. The note text is shown in each mode. |
 | FR-21 | P0 | Time to crack. Hekate shows the average time that an attacker needs to guess the password. The attacker has a copy of the stored password data and makes 10¹⁰ guesses per second. On average, the attacker needs 2^(H−1) guesses. `H` is the entropy. The component shows this note: "The time assumes an attacker who makes 10 billion guesses per second." Hekate shows the time with 2 significant digits and a `~` prefix. It uses the largest unit that gives a value of 1 or more. The units are seconds, minutes, hours, days, and years. If the time is less than 1 second, Hekate shows "less than 1 second". | Automated: For 5 words from a list of 7,776 words (64.6 bits), Hekate shows "~45 years". For 30 bits, Hekate shows "less than 1 second". The note text is present. |
 | FR-22 | P0 | Strength label. Less than 45 bits: Weak. From 45 bits to less than 60 bits: Fair. From 60 bits to less than 80 bits: Strong. 80 bits or more: Very strong. | Automated: A unit test gives these labels: 44.99 bits Weak, 45.00 bits Fair, 59.99 bits Fair, 60.00 bits Strong, 79.99 bits Strong, 80.00 bits Very strong. |
 | FR-23 | P0 | Length. Hekate shows the number of characters in the password, because some sites limit the length. | Automated: The number is the count of Unicode code points. For example, `å` in NFC form counts as 1. The number agrees with the password. |
+| FR-24 | P0 | Estimate when the attacker knows nothing. Hekate also computes the entropy for an attacker who does not know how Hekate made the password. This attacker tries every password of the same length that uses only the character groups in the password (Appendix A.3). A character group is a set such as all lowercase letters or all digits. The component shows this estimate on one line under the main strength: "If the attacker knows nothing about the password: {strength}, {entropy}, time to crack {time}." The label and the time use the rules of FR-21 and FR-22. The strength bar and the main label always use the FR-20 value, because that value is never too high. | Automated: A unit test has one case for each example of Appendix A.3, each within 0.05 bits. An end-to-end test reads the password and computes Appendix A.3. The line shows that value, its label and its time. |
 
 ### 5.3 Credits
 
@@ -178,6 +181,7 @@ Table 5.2: Attributes. The match of attribute values ignores uppercase and lower
 | `length` | An integer from 8 to 64 | `20` |
 | `charsets` | A comma-separated list of one or more of `lower`, `upper`, `digits`, `symbols`, for example `lower,digits` | `lower,upper,digits,symbols` |
 | `avoid-similar` | `true`, `false` | `false` |
+| `no-repeat` | `true`, `false` | `false` |
 | `ui-language` | A locale code that has a message file (FR-70) | The result of FR-71 |
 | `theme` | `light`, `dark`, `auto` | `auto` |
 | `assets-url` | An absolute `https` URL of a folder. On `localhost`, an `http` URL is also allowed. | The folder of the component script |
@@ -194,6 +198,7 @@ In character mode, Hekate makes a password from random characters. The component
 | FR-63 | P0 | All selected sets are present. The password contains at least one character from each selected set. Hekate makes a new random password until this condition is true. It does not change single characters, because that method causes bias. | Automated: A unit test of `hekate-core` uses two small test sets, {a, b} and {1}, and length 3. There are 18 valid passwords. The test makes 180,000 passwords. A chi-square test of the 18 passwords (17 degrees of freedom) gives p > 0.001. A second test makes 100,000 passwords with the four real sets. Each password contains each selected set. |
 | FR-64 | P1 | Avoid similar characters. If this option is on, Hekate does not use characters that look the same: `0`, `O`, `1`, `l`, and `I`. The default is off. | Automated: A test turns on the option and all four sets, with length 20. It makes 10,000 passwords. No password contains these characters. The entropy equals the value of Appendix A.2 for the sizes 25, 24, 8, and 16, within 0.05 bits. |
 | FR-65 | P0 | Security of character mode. SR-1, SR-2, and SR-3 also apply to character mode. | Automated: The SR-1, SR-2, and SR-3 tests run in word mode and in character mode. |
+| FR-66 | P0 | No same character twice in a row (character mode). The option of FR-12 also applies in character mode. No two characters next to each other are the same, and case does not count, so `aA` is not allowed. Each valid password has the same chance (SR-2). Appendix A.2 gives the entropy. | Automated: A unit test makes 100,000 passwords with only digits, "Avoid similar characters" on and length 64, and 100,000 passwords with all four sets and length 8. No password has the same character twice in a row (case ignored). A unit test uses the sets {a, b}, {A}, {1} with length 4. There are 34 valid passwords. It makes 340,000 passwords, and a chi-square test (33 degrees of freedom) gives p > 0.001. The entropy equals the Appendix A.2 examples within 0.05 bits. |
 
 ### 5.6 Translation readiness
 
@@ -203,7 +208,7 @@ Version 1.0 has English UI text only. A contributor must be able to add a transl
 |---|---|---|---|
 | FR-70 | P0 | Message files. All UI text is in message files, one file for each UI language, in `packages/component/locales/<locale>.json`. The code contains no UI text. The English file is inside the component script. Other translations are separate files that the component loads from the asset host on first use. The names of the languages in the language selector are data, not UI text. They come from the `name` field of each word list manifest (section 7.3). | Automated: A test uses a pseudo-locale. A pseudo-locale is a test language that changes all text, for example "Copy" to "[Ćöpÿ !!!]". The test makes sure that no English UI text remains. The language names stay the same. |
 | FR-71 | P0 | UI language. If the `ui-language` attribute is set, Hekate uses that UI language. If not, it uses the first entry in `navigator.languages` that has a translation. If no entry has one, it uses English. The UI language is separate from the word list language. | Automated: With a test translation file, each of the three cases selects the correct UI language. |
-| FR-72 | P0 | Numbers, plurals, and times. Hekate formats numbers and times with `Intl.NumberFormat`, `Intl.PluralRules`, and other `Intl` functions. Message files use placeholders, not text that the code joins. | Automated: The pseudo-locale uses the plural rules of English. The test makes sure that 1 word uses the `one` form and 5 words use the `other` form. With the UI language `de`, 64.6 bits shows as "64,6". With the UI language `en`, the time of FR-21 shows as "~45 years". |
+| FR-72 | P0 | Numbers, plurals, and times. Hekate formats numbers and times with `Intl.NumberFormat`, `Intl.PluralRules`, and other `Intl` functions. Message files use placeholders, not text that the code joins. | Automated: The pseudo-locale uses the plural rules of English. The test makes sure that 1 character uses the `one` form and 20 characters use the `other` form (the length text of character mode). With the UI language `de`, 64.6 bits shows as "64,6". With the UI language `en`, the time of FR-21 shows as "~45 years". |
 | FR-73 | P1 | Layout for other languages. The layout works when the text is 40% longer than English. The CSS uses logical properties, such as `margin-inline-start`. With logical properties, a right-to-left UI is possible later. | Automated: The pseudo-locale makes all text 40% longer. At parent widths of 320 px and 800 px, no text element has a `scrollWidth` larger than its `clientWidth`. The boxes of no two controls overlap. |
 | FR-74 | P1 | Translation guide. `CONTRIBUTING.md` explains how to add a translation. | Manual: A person who did not write the guide follows it. The person adds a test translation, builds the component, and sees the new text. The person changes no code. The result is in `docs/release-checklist.md`. |
 
@@ -531,12 +536,13 @@ The table shows the Web Awesome component for each element. The team can use a d
 |---|---|
 | Password, in large monospace text | `<wa-input readonly>` or text with CSS, with `<wa-copy-button>` |
 | Button for a new password | `<wa-button variant="brand">` |
-| Strength bar and label | `<wa-progress-bar>` and `<wa-badge>` |
+| Strength bar and label | `<wa-progress-bar>` and `<wa-badge>`, the note of FR-20, and the line of FR-24 as text |
 | Mode (Words or Characters) | `<wa-radio-group>` with radio buttons that look like buttons |
 | Language (word mode) | `<wa-select>`, with the name of each language in that language, for example "Svenska" and "Deutsch". The names come from the word list manifests (FR-70). |
-| Number of words (word mode) | `<wa-slider>` (3 to 10) |
+| Number of words (word mode) | `<wa-radio-group>` with radio buttons that look like buttons (3 to 10) |
 | Separator and capital letter style (word mode) | `<wa-radio-group>` with radio buttons that look like buttons |
 | Number, symbol, and ASCII-only options (word mode) | `<wa-switch>` |
+| No same character twice in a row (both modes) | `<wa-switch>` |
 | Length (character mode) | `<wa-slider>` (8 to 64) |
 | Character sets (character mode) | `<wa-checkbox>` for each set |
 | Avoid similar characters (character mode) | `<wa-switch>` |
@@ -565,10 +571,10 @@ Each control has a label from the message files and a keyboard action. NFR-3 and
 | Copy button | "Copy password" | Enter or Space copies the password. |
 | Mode | "Password type" | The arrow keys select "Words" or "Characters". |
 | Language | "Word language" | Enter or Space opens the list. The arrow keys move. Enter selects. |
-| Number of words | "Number of words" | The arrow keys change the value by 1. Home selects 3 and End selects 10. |
+| Number of words | "Number of words" | The arrow keys select a number. |
 | Separator | "Separator" | The arrow keys select a separator. |
 | Capital letters | "Capital letters" | The arrow keys select a style. |
-| Number, symbol, ASCII-only, and avoid similar characters | One label for each option | Space turns the option on or off. |
+| Number, symbol, ASCII-only, avoid similar characters, and no same character twice in a row | One label for each option | Space turns the option on or off. |
 | Length | "Length" | The arrow keys change the value by 1. Home selects 8 and End selects 64. |
 | Character sets | One label for each set | Space turns the set on or off. |
 | Credits link | "Credits" | Enter opens the dialog. Escape closes it, and the focus goes back to the link. |
@@ -614,17 +620,18 @@ Example for a website owner:
 Suggested WASM API:
 
 ```ts
-loadWordlist(lang: string, bytes: Uint8Array): void   // checks SHA-256, throws on mismatch
-generate(opts:
-  | { mode: "words"; lang: string; words: number;
-      separator: "none" | "-" | "." | "_" | "space";
-      capitalization: "lower" | "title" | "random";
-      number: boolean; symbol: boolean; asciiOnly: boolean }
-  | { mode: "characters"; length: number;
-      charsets: Array<"lower" | "upper" | "digits" | "symbols">;
-      avoidSimilar: boolean }
-): { password: string; entropyBits: number; crackSeconds: number; strength: string }
+loadWordlist(lang: string, ascii: boolean, bytes: Uint8Array): void   // checks SHA-256, throws on mismatch
+drawWords(lang: string, ascii: boolean, words: number, noRepeat: boolean): WordDraw
+WordDraw.render(separator: "none" | "-" | "." | "_" | "space",
+                capitalization: "lower" | "title" | "random",
+                number: boolean, symbol: boolean): Generated   // same words every time
+generateCharacters(length: number, charsets: number /* bit mask 1,2,4,8 */,
+                   avoidSimilar: boolean, noRepeat: boolean): Generated
+Generated: { password; kinds; entropyBits; crackSeconds; strength;
+             naiveEntropyBits; naiveCrackSeconds; naiveStrength }
 ```
+
+A `WordDraw` holds the random choices of one password. It gives the same words for all styles (FR-11).
 
 ### 9.1 Development environment
 
@@ -836,7 +843,7 @@ Each milestone lists its requirement IDs. Every P0 FR, every SR, and every NFR a
 | M0: Setup | The repository, the licenses, CI with the TDD tests of section 10.1, the development environment of section 9.1, the repository structure of section 9.2, and the release workflow. A test build that renames the Web Awesome elements. | FR-46, FR-50, FR-51, SR-10, NFR-5, NFR-7, NFR-9 |
 | M1: Core | `hekate-core` and `hekate-wasm` for both modes, the English (US) word list, the random selection, the entropy math, and tests. The tests come first (TDD-3). | FR-5, FR-6, FR-7, FR-20, FR-63, SR-1, SR-2, SR-5 |
 | M2: Word lists | The `xtask` build process, the benchmark of section 7.6, the 15 launch lists, the ASCII lists, the block lists, the Québec word list, and the native-speaker reviews. | FR-1, FR-10, NFR-6, NFR-10 |
-| M3: Component | The `<hekate-generator>` component with the Web Awesome UI, both modes, the message files and the pseudo-locale test, the errors, the demo page, and accessibility. | FR-2, FR-3, FR-4, FR-8, FR-9, FR-21, FR-22, FR-23, FR-30, FR-40, FR-41, FR-42, FR-43, FR-44, FR-45, FR-47, FR-49, FR-60, FR-61, FR-62, FR-64, FR-65, FR-70, FR-71, FR-72, FR-73, FR-74, FR-80, FR-81, FR-82, FR-83, FR-84, FR-85, FR-86, FR-87, SR-3, SR-4, SR-7, SR-8, SR-9, NFR-3, NFR-8 |
+| M3: Component | The `<hekate-generator>` component with the Web Awesome UI, both modes, the message files and the pseudo-locale test, the errors, the demo page, and accessibility. | FR-2, FR-3, FR-4, FR-8, FR-9, FR-11, FR-12, FR-21, FR-22, FR-23, FR-24, FR-30, FR-40, FR-41, FR-42, FR-43, FR-44, FR-45, FR-47, FR-49, FR-60, FR-61, FR-62, FR-64, FR-65, FR-66, FR-70, FR-71, FR-72, FR-73, FR-74, FR-80, FR-81, FR-82, FR-83, FR-84, FR-85, FR-86, FR-87, SR-3, SR-4, SR-7, SR-8, SR-9, NFR-3, NFR-8 |
 | M4: Hardening | The CSP, cross-origin, and SRI tests, the browser tests, the external review, the README for website owners, and the release of v1.0. | SR-6, SR-11, SR-12, SR-13, NFR-1, NFR-2, NFR-4 |
 | Later | Translations of the UI, Cyrillic and Greek languages, Chinese, Japanese, Korean, and right-to-left languages. | None |
 
@@ -855,6 +862,8 @@ Each milestone lists its requirement IDs. Every P0 FR, every SR, and every NFR a
 | Some sites do not accept some symbols in character mode. | The user cannot use the password on that site. | The user can turn off the symbol set (FR-62). |
 | Web Awesome loads files from a CDN by default. | These requests break the privacy promise and the CSP. | The asset host delivers all files (SR-7). An end-to-end test records all requests. |
 | A wrong strength estimate gives false confidence. | Users keep weak passwords. | The formula never gives too high a value (Appendix A). Unit tests and a public review make sure of this result. |
+| Some sites do not accept the same character twice in a row. | The user cannot use the password. | The option of FR-12 and FR-66. |
+| The estimate for an attacker who knows nothing is much higher. | Users trust a weak password. | The bar and the main label use the safe estimate (FR-20). The second line says that it assumes the attacker knows nothing (FR-24). |
 | Web Awesome 3.x changes its API. Some components are marked "Experimental". | The UI breaks after an upgrade. | The team uses only stable components and the fixed version 3.14.0. The end-to-end tests run before each upgrade. |
 | Web Awesome elements refer to each other by name, for example in templates and CSS. The new names of FR-50 must change all these references. | The component breaks, or a renamed element uses a `wa-*` element of the host page. | The test build in M0 and the FR-50 end-to-end test find this error. |
 | Third-party scripts on the host page read the password. Analytics scripts are an example. | The password goes to other companies. | The README tells website owners to use no third-party scripts on these pages (SR-11). |
@@ -883,10 +892,14 @@ Each milestone lists its requirement IDs. Every P0 FR, every SR, and every NFR a
 | Q13 | Does Hekate require Subresource Integrity? | Yes. The script tag uses SRI, and the component script fetches the WASM module and the translations with SRI hashes (SR-13). |
 | Q14 | When does CI rebuild the word lists? | CI rebuilds them on every pull request, with streamed sources, a cache, and a time limit of 60 minutes (section 7.3). |
 | Q15 | Does every language need an ASCII list? | Yes. Every language has an ASCII list of at least 4,096 words, and FR-10 stays P0 (section 7.4). |
+| Q16 | How does the user select the number of words? | The number of words uses radio buttons, not a slider. |
+| Q17 | What does the no-repeat rule forbid? | The no-repeat rule forbids the same character twice in a row, with case ignored, in both modes. |
+| Q18 | Does Hekate show a second estimate? | Hekate shows a second estimate for an attacker who knows nothing, on one smaller line. The bar and the label use the safe estimate. |
+| Q19 | Does a style change make new words? | A change to the separator, the capital letters, the number or the symbol keeps the words. |
 
 ## Appendix A: Entropy formulas
 
-For both modes, the average time to crack, in seconds, is `2^(H−1) / 10^10`. `H` is the total entropy in bits.
+For both modes, the average time to crack, in seconds, is `2^(H−1) / 10^10`. `H` is the total entropy in bits. FR-24 uses the same time formula with `H` from A.3.
 
 ### A.1 Word mode
 
@@ -913,6 +926,16 @@ Examples with `N = 7,776`:
 | 5 words, `title` style, number, symbol | 75.3 | Strong |
 | 6 words, `random` style, number | 90.2 | Very strong |
 
+#### With no-repeat on (FR-12)
+
+`N'` is the number of words that have no letter twice in a row (case ignored) and whose capital form has the same letters. `W_k` is the number of sequences of `k` words from these `N'` words in which no word ends with the first letter of the next word (case ignored).
+
+The words row adds `log2(W_k)` instead of `k · log2(N)`. The number row adds `log2(91)` ≈ 6.51. The symbol row adds `log2(14)` ≈ 3.81. The capital letters rows do not change.
+
+Example: the list `ab`, `ba`, `cd` with `k = 3` gives `W_3 = 17`, so 4.09 bits.
+
+Hekate computes `W_k` with this rule. `f_1(c)` is the number of words that end with `c`. `f_{i+1}(c) = Σ` over the words `w` that end with `c` of `(T_i − f_i(first letter of w))`. `T_i` is the sum of `f_i`, and `W_k = T_k`.
+
 ### A.2 Character mode
 
 `L` is the length. The selected character sets are `s1` to `sm`, with sizes `|s1|` to `|sm|`. `C` is the total number of characters in all selected sets. The sizes are: lowercase 26, capital letters 26, digits 10, symbols 16. With "Avoid similar characters" on, the sizes are: lowercase 25, capital letters 24, digits 8, symbols 16.
@@ -923,6 +946,8 @@ FR-63 accepts only passwords that contain each selected set. The number of these
 
 The entropy is `H = log2(V)`. This value is a little smaller than `L · log2(C)`.
 
+With no-repeat on, the term `(C − size of all sets in T)^L` becomes `R(A_T, L)`. `A_T` is the set of characters that are left after Hekate removes the sets in `T`. `R(A_T, L)` is the number of passwords of length `L` from `A_T` in which no two neighbors are in the same case group. A case group is the set of characters that are equal when case is ignored, for example `a` and `A`. `e_1(j) = s_j`, where `s_j` is the size of group `j`. `e_{n+1}(j) = s_j · (T_n − e_n(j))`, `T_n` is the sum of `e_n`, and `R = T_L`.
+
 Examples:
 
 | Options | H (bits) | Label |
@@ -930,6 +955,23 @@ Examples:
 | 8 characters, lowercase and digits | 41.2 | Weak |
 | 12 characters, all four sets | 75.0 | Strong |
 | 20 characters, all four sets | 125.6 | Very strong |
+| 8 characters, lowercase and digits, no-repeat | 40.97 | Weak |
+| 12 characters, all four sets, no-repeat | 74.67 | Strong |
+| 20 characters, all four sets, no-repeat | 125.02 | Very strong |
+| 8 characters, digits only, no-repeat | 25.51 | Weak |
+
+### A.3 Attacker who knows nothing
+
+`L` is the number of code points. `P` is the sum of the sizes of the groups that appear in the password: lowercase `a`–`z` 26, capitals `A`–`Z` 26, digits 10, other printable ASCII characters including space 33, and all other characters 190 (U+00C0 to U+017F without `×` and `÷`). `H = L · log2(P)`.
+
+Examples:
+
+| Password | L | P | H (bits) |
+|---|---|---|---|
+| `BraveMapleRiverCloudStone` | 25 | 52 | 142.5 |
+| `Brave-Maple-42-River!` | 21 | 95 | 138.0 |
+| `aB3!efgh` | 8 | 95 | 52.6 |
+| `smörgås-tårta-fika` | 18 | 249 | 143.3 |
 
 ## Appendix B: Glossary
 
@@ -938,6 +980,7 @@ Examples:
 - Automated criterion: An acceptance criterion that a test in CI makes sure of.
 - Bias: Some values occur more often than others.
 - Build pipeline: The `cargo xtask dist` command, which makes `dist/<version>/`.
+- Case group: Letters that differ only in case, for example `a` and `A`.
 - CDN: A third-party server that delivers files.
 - Character set: A group of characters that the user can turn on or off, for example digits.
 - Chi-square test: A statistical test that finds uneven results.
