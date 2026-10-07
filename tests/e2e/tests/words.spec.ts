@@ -1,4 +1,4 @@
-// Word passwords: FR-1, FR-2, FR-3, FR-4, FR-10, NFR-6.
+// Word passwords: FR-1, FR-2, FR-3, FR-4, FR-10, FR-11, FR-12, NFR-6.
 import { expect, test } from "@playwright/test";
 import {
   generateMany,
@@ -11,8 +11,9 @@ import {
   waitForPassword,
   watchLiveRegion,
   liveHistory,
+  wordsRadio,
 } from "../support/component.ts";
-import { setBrowserLanguages } from "../support/browser.ts";
+import { instrumentWasm, setBrowserLanguages, wasmCalls } from "../support/browser.ts";
 import { englishText, languageCodes, manifests, readWordlist } from "../support/env.ts";
 import { wordEntropy } from "../support/maths.ts";
 import { recordRequests, wordlistRequests } from "../support/network.ts";
@@ -95,28 +96,24 @@ test.describe("FR-2 default language", () => {
 });
 
 test.describe("FR-3 number of words", () => {
-  const slider = "[part=words] [role=slider]";
-
-  test("FR-3 the control accepts only values from 3 to 10", async ({ page }) => {
+  test("FR-3 the control is a group of 8 radio buttons with the values 3 to 10", async ({
+    page,
+  }) => {
     await openPlayground(page);
     expect(await readState(page)).toMatchObject({ words: 5 });
-    const control = part(page, "words");
-    await expect(control).toHaveAttribute("min", "3");
-    await expect(control).toHaveAttribute("max", "10");
-    await page.locator(slider).focus();
-    for (const [key, expected] of [
-      ["Home", 3],
-      ["ArrowLeft", 3],
-      ["ArrowLeft", 3],
-      ["ArrowRight", 4],
-      ["End", 10],
-      ["ArrowRight", 10],
-      ["ArrowLeft", 9],
-    ] as const) {
-      await page.keyboard.press(key);
-      await expect.poll(async () => (await readState(page)).words).toBe(expected);
-      await expect(part(page, "words-value")).toContainText(String(expected));
+    const radios = part(page, "words").getByRole("radio");
+    await expect(radios).toHaveCount(8);
+    for (let index = 0; index < 8; index++) {
+      await expect(radios.nth(index)).toHaveAccessibleName(String(index + 3));
     }
+    await expect(wordsRadio(page, 5)).toBeChecked();
+    await wordsRadio(page, 3).click();
+    await expect.poll(async () => (await readState(page)).words).toBe(3);
+    await expect(wordsRadio(page, 3)).toBeChecked();
+    await wordsRadio(page, 10).click();
+    await expect.poll(async () => (await readState(page)).words).toBe(10);
+    await expect(wordsRadio(page, 10)).toBeChecked();
+    expect((await readPassword(page)).match(/\p{Lu}/gu)).toHaveLength(10);
   });
 
   test("FR-3 with 3 words the warning shows, with 4 words it does not, and the live region announces it", async ({
@@ -126,12 +123,11 @@ test.describe("FR-3 number of words", () => {
     await watchLiveRegion(page);
     const warning = page.locator("#words-warning");
     await expect(warning).toHaveCount(0);
-    await page.locator(slider).focus();
-    await page.keyboard.press("Home");
+    await wordsRadio(page, 3).click();
     await expect(warning).toBeVisible();
     await expect(warning).toHaveText(englishText("words.warning"));
     await expect.poll(() => liveHistory(page)).toContain(englishText("words.warning"));
-    await page.keyboard.press("ArrowRight");
+    await wordsRadio(page, 4).click();
     await expect(warning).toHaveCount(0);
     expect((await readState(page)).words).toBe(4);
   });
@@ -139,6 +135,59 @@ test.describe("FR-3 number of words", () => {
   test("FR-3 the attribute words=3 shows the warning from the start", async ({ page }) => {
     await openPlayground(page, { words: "3" });
     await expect(page.locator("#words-warning")).toHaveText(englishText("words.warning"));
+  });
+});
+
+test.describe("FR-11 keep the words", () => {
+  test("FR-11 the separator, capital letters, number and symbol keep the words, and no call makes new words", async ({
+    page,
+  }) => {
+    await instrumentWasm(page);
+    await openPlayground(page, { language: "en-US" });
+    const wordText = async () =>
+      (await part(page, "token-word").allTextContents()).join("").toLowerCase();
+    const named = async (name: string) =>
+      (await wasmCalls(page)).filter((call) => call.name === name).length;
+    const before = await wordText();
+    expect(before).not.toBe("");
+    expect(await named("drawWords")).toBe(1);
+    const actions: Array<[string, () => Promise<void>]> = [
+      ["separator", () => page.getByRole("radio", { name: "Hyphen (-)" }).click()],
+      ["capital letters", () => page.getByRole("radio", { name: "Random" }).click()],
+      ["number", () => part(page, "number").click()],
+      ["symbol", () => part(page, "symbol").click()],
+    ];
+    let renders = await named("worddraw_render");
+    for (const [label, action] of actions) {
+      await action();
+      renders += 1;
+      await expect.poll(() => named("worddraw_render"), { message: label }).toBe(renders);
+      expect(await wordText(), `${label}: the words stay`).toBe(before);
+      expect(await named("drawWords"), `${label}: no new words`).toBe(1);
+    }
+    // The number and the symbol are now in the password.
+    await expect(part(page, "token-number")).toHaveCount(1);
+    await expect(part(page, "token-symbol")).toHaveCount(1);
+  });
+});
+
+test.describe("FR-12 no same character twice in a row (word mode)", () => {
+  test("FR-12 with no-repeat on, 1,000 word passwords have no character twice in a row", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await openPlayground(page, {
+      language: "en-US",
+      "no-repeat": "true",
+      number: "true",
+      symbol: "true",
+      separator: "-",
+    });
+    const passwords = await generateMany(page, 1000);
+    expect(passwords).toHaveLength(1000);
+    for (const password of passwords) {
+      expect(password, password).not.toMatch(/(.)\1/i);
+    }
   });
 });
 

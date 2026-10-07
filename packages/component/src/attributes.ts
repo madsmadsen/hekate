@@ -30,6 +30,7 @@ export const DEFAULTS = {
   length: 20,
   charsets: [...CHARSETS] as readonly Charset[],
   avoidSimilar: false,
+  noRepeat: false,
   theme: "auto" as Theme,
 };
 
@@ -111,6 +112,7 @@ export function describeAllowed(name: string): string {
     case "symbol":
     case "ascii-only":
     case "avoid-similar":
+    case "no-repeat":
       return "true or false";
     case "assets-url":
       return "an absolute https URL of a folder (http is allowed on localhost)";

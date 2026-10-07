@@ -22,7 +22,8 @@ test.describe("NFR-1 speed", () => {
       await session.send("Emulation.setCPUThrottlingRate", { rate: 4 });
       try {
         const start = (await wasmCalls(page)).length;
-        // Each click calls generate one time. The loop runs in the page.
+        // Each click makes new words (`drawWords`) and builds the password (`worddraw_render`),
+        // or makes one character password (`generateCharacters`). The loop runs in the page.
         await part(page, "new-password-button").evaluate(async (button) => {
           const element = button.getRootNode() as ShadowRoot;
           const host = element.host as HTMLElement & { updateComplete: Promise<boolean> };
@@ -33,16 +34,19 @@ test.describe("NFR-1 speed", () => {
           await host.updateComplete;
         });
         const calls = (await wasmCalls(page)).slice(start);
-        expect(calls).toHaveLength(1000);
-        const name = mode === "words" ? "generateWords" : "generateCharacters";
-        expect(calls.every((call) => call.name === name)).toBe(true);
-        const times = calls.map((call) => call.ms);
-        const p95 = percentile(times, 95);
-        test.info().annotations.push({
-          type: "p95",
-          description: `${mode}: p95 ${p95.toFixed(2)} ms, max ${Math.max(...times).toFixed(2)} ms`,
-        });
-        expect(p95, `p95 of 1,000 calls in ${mode} mode`).toBeLessThanOrEqual(5);
+        const names = mode === "words" ? ["drawWords", "worddraw_render"] : ["generateCharacters"];
+        expect(calls).toHaveLength(1000 * names.length);
+        expect(calls.every((call) => names.includes(call.name))).toBe(true);
+        for (const name of names) {
+          const times = calls.filter((call) => call.name === name).map((call) => call.ms);
+          expect(times, `calls of ${name}`).toHaveLength(1000);
+          const p95 = percentile(times, 95);
+          test.info().annotations.push({
+            type: "p95",
+            description: `${mode}, ${name}: p95 ${p95.toFixed(2)} ms, max ${Math.max(...times).toFixed(2)} ms`,
+          });
+          expect(p95, `p95 of 1,000 calls of ${name}`).toBeLessThanOrEqual(5);
+        }
       } finally {
         await session.send("Emulation.setCPUThrottlingRate", { rate: 1 });
       }

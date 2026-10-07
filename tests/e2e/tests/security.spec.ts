@@ -21,6 +21,7 @@ import {
   setProperty,
   waitForPassword,
   watchLiveRegion,
+  wordsRadio,
 } from "../support/component.ts";
 import {
   ASSET_ORIGIN,
@@ -49,10 +50,9 @@ async function useComponent(page: Page, options: { languages?: string[] } = {}):
   await part(page, "number").click();
   await part(page, "symbol").click();
   await read();
-  await page.locator("[part=words] [role=slider]").focus();
-  await page.keyboard.press("Home");
+  await wordsRadio(page, 3).click();
   await read();
-  await page.keyboard.press("End");
+  await wordsRadio(page, 10).click();
   await read();
   for (const language of options.languages ?? []) {
     await setProperty(page, "language", language);
@@ -435,17 +435,18 @@ test.describe("SR-9 live region", () => {
     ).toBeGreaterThanOrEqual(4);
   });
 
-  test("SR-9 a change of an option, a mode change and a language change announce New password generated", async ({
+  test("SR-9 a change of the separator, a mode change and a language change announce a fixed text", async ({
     page,
   }) => {
     await openPlayground(page);
     await watchLiveRegion(page);
     await page.getByRole("radio", { name: "Hyphen (-)" }).click();
-    await expect.poll(() => liveHistory(page)).toContain("New password generated");
+    await expect.poll(() => liveHistory(page)).toContain(englishText("announce.passwordChanged"));
     await page.getByRole("radio", { name: "Characters" }).click();
-    await expect.poll(async () => (await liveHistory(page)).length).toBeGreaterThan(2);
+    await expect.poll(() => liveHistory(page)).toContain("New password generated");
+    const allowed = ["", "New password generated", englishText("announce.passwordChanged")];
     for (const text of await liveHistory(page)) {
-      expect(text === "" || text === "New password generated").toBe(true);
+      expect(allowed).toContain(text);
     }
   });
 
@@ -455,8 +456,7 @@ test.describe("SR-9 live region", () => {
     await watchLiveRegion(page);
     await part(page, "copy-button").click();
     await expect.poll(() => liveHistory(page)).toContain(englishText("action.copied"));
-    await page.locator("[part=words] [role=slider]").focus();
-    await page.keyboard.press("Home");
+    await wordsRadio(page, 3).click();
     await expect.poll(() => liveHistory(page)).toContain(englishText("words.warning"));
     const password = await readPassword(page);
     for (const text of await liveHistory(page)) expect(text).not.toContain(password);
@@ -604,80 +604,140 @@ test.describe("SR-13 subresource integrity", () => {
 // --- FR-8 ----------------------------------------------------------------------------------
 
 test.describe("FR-8 new password", () => {
-  async function count(page: Page): Promise<number> {
-    return (await wasmCalls(page)).length;
+  interface Counts {
+    draw: number;
+    render: number;
+    characters: number;
   }
 
-  test("FR-8 one click gives one call and each change of an option gives one call, in both modes", async ({
+  async function counts(page: Page): Promise<Counts> {
+    const calls = await wasmCalls(page);
+    const named = (name: string) => calls.filter((call) => call.name === name).length;
+    return {
+      draw: named("drawWords"),
+      render: named("worddraw_render"),
+      characters: named("generateCharacters"),
+    };
+  }
+
+  test("FR-8 FR-11 each change of an option gives the right calls, in both modes", async ({
     page,
   }) => {
     test.setTimeout(120_000);
     await instrumentWasm(page);
     await openPlayground(page, { language: "en-US" });
-    // The start gives one call.
-    expect(await count(page)).toBe(1);
-    let calls = 1;
+    // The start makes words one time and builds one password.
+    let expected: Counts = { draw: 1, render: 1, characters: 0 };
+    expect(await counts(page)).toEqual(expected);
     let password = await readPassword(page);
 
-    const expectOneCall = async (action: () => Promise<void>, label: string) => {
+    // `delta` is the number of new calls of each kind. `changes: false` skips the check that the
+    // password is different, because the random capital letters can give the same text.
+    const expectCalls = async (
+      action: () => Promise<void>,
+      delta: Partial<Counts>,
+      label: string,
+      changes = true,
+    ) => {
       await action();
-      await expect.poll(() => count(page), { message: label }).toBe(calls + 1);
-      calls += 1;
-      // The shown password is the one that this call made: it changed, and it is not empty.
-      await expect.poll(() => readPassword(page), { message: label }).not.toBe(password);
+      expected = {
+        draw: expected.draw + (delta.draw ?? 0),
+        render: expected.render + (delta.render ?? 0),
+        characters: expected.characters + (delta.characters ?? 0),
+      };
+      await expect.poll(() => counts(page), { message: label }).toEqual(expected);
+      if (changes) {
+        await expect.poll(() => readPassword(page), { message: label }).not.toBe(password);
+      }
       password = await readPassword(page);
       await page.waitForTimeout(150);
-      expect(await count(page), `${label}: no more calls`).toBe(calls);
+      expect(await counts(page), `${label}: no more calls`).toEqual(expected);
     };
+    const newWords = { draw: 1, render: 1 };
+    const sameWords = { render: 1 };
 
-    await expectOneCall(() => part(page, "new-password-button").click(), "new password");
-    await expectOneCall(() => part(page, "new-password-button").click(), "new password again");
-    await expectOneCall(() => page.getByRole("radio", { name: "Hyphen (-)" }).click(), "separator");
-    await expectOneCall(
-      () => page.getByRole("radio", { name: "Random" }).click(),
-      "capital letters",
+    await expectCalls(() => part(page, "new-password-button").click(), newWords, "new password");
+    await expectCalls(
+      () => part(page, "new-password-button").click(),
+      newWords,
+      "new password again",
     );
-    await expectOneCall(() => part(page, "number").click(), "number");
-    await expectOneCall(() => part(page, "symbol").click(), "symbol");
-    await expectOneCall(() => part(page, "ascii-only").click(), "ASCII-only");
-    await expectOneCall(async () => {
-      await page.locator("[part=words] [role=slider]").focus();
-      await page.keyboard.press("ArrowRight");
-    }, "number of words");
-    await expectOneCall(
+    // FR-11: these four changes keep the words, so no call makes new words.
+    await expectCalls(
+      () => page.getByRole("radio", { name: "Hyphen (-)" }).click(),
+      sameWords,
+      "separator",
+    );
+    await expectCalls(
+      () => page.getByRole("radio", { name: "Random" }).click(),
+      sameWords,
+      "capital letters",
+      false,
+    );
+    await expectCalls(() => part(page, "number").click(), sameWords, "number");
+    await expectCalls(() => part(page, "symbol").click(), sameWords, "symbol");
+    await expectCalls(() => part(page, "ascii-only").click(), newWords, "ASCII-only");
+    await expectCalls(() => wordsRadio(page, 6).click(), newWords, "number of words");
+    await expectCalls(
       () => setProperty(page, "language", languageCodes.at(-1) ?? "en-US"),
+      newWords,
       "language",
     );
+    await expectCalls(() => part(page, "no-repeat").click(), newWords, "no-repeat in word mode");
     // Character mode.
-    await expectOneCall(() => page.getByRole("radio", { name: "Characters" }).click(), "mode");
-    await expectOneCall(
+    await expectCalls(
+      () => page.getByRole("radio", { name: "Characters" }).click(),
+      { characters: 1 },
+      "mode",
+    );
+    await expectCalls(
       () => part(page, "new-password-button").click(),
+      { characters: 1 },
       "new password in character mode",
     );
-    await expectOneCall(async () => {
-      await page.locator("[part=length] [role=slider]").focus();
-      await page.keyboard.press("ArrowRight");
-    }, "length");
-    await expectOneCall(() => part(page, "charset").nth(3).click(), "character set");
-    await expectOneCall(() => part(page, "avoid-similar").click(), "avoid similar characters");
-    await expectOneCall(
+    await expectCalls(
+      async () => {
+        await page.locator("[part=length] [role=slider]").focus();
+        await page.keyboard.press("ArrowRight");
+      },
+      { characters: 1 },
+      "length",
+    );
+    await expectCalls(
+      () => part(page, "charset").nth(3).click(),
+      { characters: 1 },
+      "character set",
+    );
+    await expectCalls(
+      () => part(page, "avoid-similar").click(),
+      { characters: 1 },
+      "avoid similar characters",
+    );
+    await expectCalls(
+      () => part(page, "no-repeat").click(),
+      { characters: 1 },
+      "no-repeat in character mode",
+    );
+    await expectCalls(
       () => page.getByRole("radio", { name: "Words" }).click(),
+      newWords,
       "mode back to words",
     );
   });
 
-  test("FR-8 the call names are generateWords in word mode and generateCharacters in character mode", async ({
+  test("FR-8 the calls are drawWords and worddraw_render in word mode and generateCharacters in character mode", async ({
     page,
   }) => {
     await instrumentWasm(page);
     await openPlayground(page, { mode: "characters" });
     await part(page, "new-password-button").click();
     await page.getByRole("radio", { name: "Words" }).click();
-    await expect.poll(async () => (await wasmCalls(page)).length).toBe(3);
+    await expect.poll(async () => (await wasmCalls(page)).length).toBe(4);
     expect((await wasmCalls(page)).map((c) => c.name)).toEqual([
       "generateCharacters",
       "generateCharacters",
-      "generateWords",
+      "drawWords",
+      "worddraw_render",
     ]);
   });
 });

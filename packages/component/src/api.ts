@@ -47,12 +47,13 @@ export const PARTS = [
   "entropy",
   "crack-time",
   "crack-note",
+  "strength-note",
+  "naive-strength",
   "password-length",
   "options",
   "mode",
   "language",
   "words",
-  "words-value",
   "separator",
   "capitalization",
   "number",
@@ -63,6 +64,7 @@ export const PARTS = [
   "charsets",
   "charset",
   "avoid-similar",
+  "no-repeat",
 ] as const;
 
 /** Attributes of table 5.2. */
@@ -78,6 +80,7 @@ export const ATTRIBUTES = [
   "length",
   "charsets",
   "avoid-similar",
+  "no-repeat",
   "ui-language",
   "theme",
   "assets-url",

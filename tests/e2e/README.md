@@ -89,8 +89,9 @@ name, `E2E_WORKERS` for the number of parallel workers, and `PLAYWRIGHT_IMAGE` f
   clicks "New password" and reads the password field. It is fast.
 - **Fixed seed.** Tests that compare screenshots or run statistics replace `crypto.getRandomValues` with a
   seeded generator (`support/browser.ts`). Only tests do this. A run always gives the same passwords.
-- **Speed of `generate`.** NFR-1 wraps the two WASM exports `generateWords` and `generateCharacters` with a
-  timer. It runs in Chromium only, because only Chromium can slow the CPU down (CDP).
+- **Speed of `generate`.** NFR-1 wraps the WASM exports `drawWords`, `worddraw_render` (the `render`
+  method of a word draw), and `generateCharacters` with a timer. FR-8 and FR-11 also count these calls.
+  NFR-1 runs in Chromium only, because only Chromium can slow the CPU down (CDP).
   Other tests that need one browser use `test.skip(browserName !== 'chromium', 'reason')` with the reason.
 - **Screenshots (FR-41).** The test makes two screenshots in the same run and compares the bytes: the
   component on a clean page and on a page with hostile CSS, and the page outside the component with and

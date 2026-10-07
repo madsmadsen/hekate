@@ -171,24 +171,24 @@ test.describe("FR-71 UI language", () => {
 });
 
 test.describe("FR-72 numbers, plurals and times", () => {
-  test("FR-72 the pseudo-locale uses the plural rules of English: 1 word uses the one form and 5 words use the other form", async ({
+  test("FR-72 the pseudo-locale uses the plural rules of English: 1 character uses the one form and 20 characters use the other form", async ({
     page,
   }) => {
-    await openPlayground(page, { "ui-language": "qps" });
-    await expect(part(page, "words-value")).toHaveText(
-      pseudoText("words.value", { count: 5 }, "other"),
+    await openPlayground(page, { "ui-language": "qps", mode: "characters", length: "20" });
+    await expect(part(page, "length-value")).toHaveText(
+      pseudoText("length.value", { count: 20 }, "other"),
     );
-    // The control stops at 3, so the property is set directly to show the form for 1.
-    await setProperty(page, "words", 1);
-    await expect(part(page, "words-value")).toHaveText(
-      pseudoText("words.value", { count: 1 }, "one"),
+    // The control stops at 8, so the property is set directly to show the form for 1.
+    await setProperty(page, "length", 1);
+    await expect(part(page, "length-value")).toHaveText(
+      pseudoText("length.value", { count: 1 }, "one"),
     );
-    expect(pseudoText("words.value", { count: 1 }, "one")).not.toBe(
-      pseudoText("words.value", { count: 1 }, "other"),
+    expect(pseudoText("length.value", { count: 1 }, "one")).not.toBe(
+      pseudoText("length.value", { count: 1 }, "other"),
     );
-    await setProperty(page, "words", 5);
-    await expect(part(page, "words-value")).toHaveText(
-      pseudoText("words.value", { count: 5 }, "other"),
+    await setProperty(page, "length", 20);
+    await expect(part(page, "length-value")).toHaveText(
+      pseudoText("length.value", { count: 20 }, "other"),
     );
   });
 

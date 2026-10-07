@@ -16,6 +16,7 @@ export interface HekateElement extends HTMLElement {
   length: number;
   charsets: string[];
   avoidSimilar: boolean;
+  noRepeat: boolean;
   uiLanguage: string | undefined;
   theme: string;
   assetsUrl: string | undefined;
@@ -79,6 +80,11 @@ export function part(page: Page, name: string, index = 0): Locator {
   return page.locator("hekate-generator").nth(index).locator(`[part="${name}"]`);
 }
 
+/** The radio button for a number of words (FR-3), for example `wordsRadio(page, 6)`. */
+export function wordsRadio(page: Page, count: number, index = 0): Locator {
+  return part(page, "words", index).getByRole("radio", { name: String(count), exact: true });
+}
+
 /** The element that has the focus inside the shadow root of the component. */
 export async function focusedId(page: Page): Promise<string | null> {
   return page.evaluate(() => {
@@ -100,6 +106,7 @@ export async function readState(page: Page): Promise<{
   length: number;
   charsets: string[];
   avoidSimilar: boolean;
+  noRepeat: boolean;
   theme: string;
 }> {
   return page
@@ -119,6 +126,7 @@ export async function readState(page: Page): Promise<{
         length: element.length,
         charsets: [...element.charsets],
         avoidSimilar: element.avoidSimilar,
+        noRepeat: element.noRepeat,
         theme: element.theme,
       };
     });

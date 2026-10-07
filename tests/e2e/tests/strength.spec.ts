@@ -1,4 +1,4 @@
-// Strength estimate and display: FR-21, FR-22, FR-23, NFR-8.
+// Strength estimate and display: FR-20, FR-21, FR-22, FR-23, FR-24, NFR-8.
 import { expect, test, type Page } from "@playwright/test";
 import {
   openPlayground,
@@ -12,6 +12,7 @@ import {
   characterEntropy,
   contrastRatio,
   crackTimeText,
+  naiveEntropy,
   strengthLabel,
   wordEntropy,
 } from "../support/maths.ts";
@@ -80,6 +81,48 @@ test.describe("FR-21 time to crack", () => {
     }
     expect(checked).toBe(40);
   });
+});
+
+test.describe("FR-20 what the attacker knows", () => {
+  test("FR-20 the note says what the attacker knows, in each mode", async ({ page }) => {
+    const manifest = manifests.find((m) => m.code === "en-US") ?? manifests[0];
+    test.skip(!manifest, "no word list");
+    await openPlayground(page, { language: manifest?.code ?? "en-US" });
+    await expect(page.locator("#strength-note")).toHaveText(
+      englishText("strength.assumeWords").replace("{language}", manifest?.name ?? ""),
+    );
+    await setProperty(page, "mode", "characters");
+    await waitForPassword(page);
+    await expect(page.locator("#strength-note")).toHaveText(
+      englishText("strength.assumeCharacters"),
+    );
+  });
+});
+
+test.describe("FR-24 attacker who knows nothing", () => {
+  for (const [mode, attributes] of [
+    ["words", { language: "en-US", separator: "-", number: "true", symbol: "true" }],
+    ["characters", { mode: "characters", length: "20" }],
+  ] as const) {
+    test(`FR-24 in ${mode} mode the second line shows the estimate of Appendix A.3, its label and its time`, async ({
+      page,
+    }) => {
+      await openPlayground(page, attributes);
+      const bits = naiveEntropy(await readPassword(page));
+      const count = Math.round(bits * 10) / 10;
+      const entropy = englishText("entropy.value", 2).replace(
+        "{count}",
+        new Intl.NumberFormat("en").format(count),
+      );
+      const expected = englishText("strength.naive")
+        .replace("{strength}", strengthLabel(bits))
+        .replace("{entropy}", entropy)
+        .replace("{time}", crackTimeText(bits));
+      await expect(page.locator("#naive-strength")).toHaveText(expected);
+      // The bar and the main label keep the safe estimate of FR-20.
+      expect(await shownBits(page)).toBeLessThan(bits);
+    });
+  }
 });
 
 test.describe("FR-22 strength label", () => {

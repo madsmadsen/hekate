@@ -12,27 +12,44 @@ export interface Generated {
   entropyBits: number;
   crackSeconds: number;
   strength: Strength;
+  /** The estimate for an attacker who knows nothing about the password (FR-24). */
+  naiveEntropyBits: number;
+  naiveCrackSeconds: number;
+  naiveStrength: Strength;
 }
 
-export interface WordOptions {
+/** The options that make new words (FR-8). */
+export interface DrawOptions {
   language: string;
   ascii: boolean;
   words: number;
+  noRepeat: boolean;
+}
+
+/** The options that change only how the same words look (FR-11). */
+export interface WordStyle {
   separator: Separator;
   capitalization: Capitalization;
   number: boolean;
   symbol: boolean;
 }
 
+/** One set of words. Each `render` call gives the same words in the given style. */
+export interface WordDraw {
+  render(style: WordStyle): Generated;
+  free(): void;
+}
+
 export interface CharacterOptions {
   length: number;
   charsets: readonly Charset[];
   avoidSimilar: boolean;
+  noRepeat: boolean;
 }
 
 export interface Engine {
   loadWordlist(language: string, ascii: boolean, bytes: Uint8Array): void;
-  generateWords(options: WordOptions): Generated;
+  drawWords(options: DrawOptions): WordDraw;
   generateCharacters(options: CharacterOptions): Generated;
 }
 
@@ -44,6 +61,9 @@ interface WasmGenerated {
   readonly entropyBits: number;
   readonly crackSeconds: number;
   readonly strength: string;
+  readonly naiveEntropyBits: number;
+  readonly naiveCrackSeconds: number;
+  readonly naiveStrength: string;
   free(): void;
 }
 
@@ -55,6 +75,9 @@ function read(value: WasmGenerated): Generated {
       entropyBits: value.entropyBits,
       crackSeconds: value.crackSeconds,
       strength: value.strength as Strength,
+      naiveEntropyBits: value.naiveEntropyBits,
+      naiveCrackSeconds: value.naiveCrackSeconds,
+      naiveStrength: value.naiveStrength as Strength,
     };
   } finally {
     value.free();
@@ -67,24 +90,20 @@ async function loadWasmEngine(folder: string): Promise<Engine> {
   await wasm.default({ module_or_path: fetchWasm(folder) });
   return {
     loadWordlist: (language, ascii, bytes) => wasm.loadWordlist(language, ascii, bytes),
-    generateWords: (o) =>
-      read(
-        wasm.generateWords(
-          o.language,
-          o.ascii,
-          o.words,
-          o.separator,
-          o.capitalization,
-          o.number,
-          o.symbol,
-        ),
-      ),
+    drawWords: (o) => {
+      const draw = wasm.drawWords(o.language, o.ascii, o.words, o.noRepeat);
+      return {
+        render: (s) => read(draw.render(s.separator, s.capitalization, s.number, s.symbol)),
+        free: () => draw.free(),
+      };
+    },
     generateCharacters: (o) =>
       read(
         wasm.generateCharacters(
           o.length,
           o.charsets.reduce((mask, set) => mask | MASK[set], 0),
           o.avoidSimilar,
+          o.noRepeat,
         ),
       ),
   };

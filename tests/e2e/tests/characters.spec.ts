@@ -1,4 +1,4 @@
-// Character passwords: FR-60 to FR-65.
+// Character passwords: FR-60 to FR-66.
 import { expect, test, type Page } from "@playwright/test";
 import { countRandom, randomCounts, removeRandom, seedRandom } from "../support/browser.ts";
 import {
@@ -209,6 +209,23 @@ test.describe("FR-64 avoid similar characters", () => {
     );
     expect(Math.abs(normal - characterEntropy(20, [26, 26, 10, 16]))).toBeLessThanOrEqual(0.05);
     expect(normal).toBeGreaterThan(bits);
+  });
+});
+
+test.describe("FR-66 no same character twice in a row (character mode)", () => {
+  test("FR-66 with no-repeat on, 1,000 character passwords have no character twice in a row and the entropy is 125.0 bits", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await openPlayground(page, { mode: "characters", length: "20", "no-repeat": "true" });
+    // Appendix A.2: 20 characters, all four sets, no-repeat give 125.02 bits.
+    const shown = (await page.locator("#entropy").textContent()) ?? "";
+    expect(Math.abs(Number(/([\d.]+)/.exec(shown)?.[1]) - 125.02)).toBeLessThanOrEqual(0.05);
+    const passwords = await generateMany(page, 1000);
+    expect(passwords).toHaveLength(1000);
+    for (const password of passwords) {
+      expect(password, password).not.toMatch(/(.)\1/i);
+    }
   });
 });
 

@@ -61,6 +61,7 @@ export async function layoutReport(page: Page): Promise<LayoutReport> {
         "[part=length]",
         "[part=charset]",
         "[part=avoid-similar]",
+        "[part=no-repeat]",
         "#credits-link",
         "#password",
       ];

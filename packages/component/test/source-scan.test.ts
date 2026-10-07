@@ -92,7 +92,7 @@ test("FR-70 the code has no UI text: every message key that the code uses is in 
     for (const match of code(text).matchAll(/\bt\(\s*"([a-zA-Z.-]+)"/g))
       used.add(match[1] as string);
     for (const match of code(text).matchAll(
-      /"((?:error|action|announce|mode|language|words|separator|capitalization|number|symbol|ascii|length|charsets?|avoidSimilar|strength|entropy|crack|password|credits)\.[a-zA-Z.-]+)"/g,
+      /"((?:error|action|announce|mode|language|words|separator|capitalization|number|symbol|ascii|length|charsets?|avoidSimilar|noRepeat|strength|entropy|crack|password|credits)\.[a-zA-Z.-]+)"/g,
     )) {
       used.add(match[1] as string);
     }

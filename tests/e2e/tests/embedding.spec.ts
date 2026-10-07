@@ -8,6 +8,7 @@ import {
   readPassword,
   readState,
   waitForPassword,
+  wordsRadio,
   type HekateElement,
 } from "../support/component.ts";
 import { servePage } from "../support/browser.ts";
@@ -140,6 +141,7 @@ const FR42_CASES: Case[] = [
   ...booleanCases("symbol", "symbol"),
   ...booleanCases("ascii-only", "asciiOnly"),
   ...booleanCases("avoid-similar", "avoidSimilar"),
+  ...booleanCases("no-repeat", "noRepeat"),
   ...range(8, 64).map((n) => ({
     attribute: "length",
     property: "length",
@@ -225,6 +227,7 @@ const DEFAULTS: Record<string, unknown> = {
   length: 20,
   charsets: ["lower", "upper", "digits", "symbols"],
   avoidSimilar: false,
+  noRepeat: false,
   theme: "auto",
   uiLanguage: undefined,
   assetsUrl: undefined,
@@ -259,6 +262,7 @@ test.describe("FR-42 start options", () => {
           length: element.length,
           charsets: [...element.charsets],
           avoidSimilar: element.avoidSimilar,
+          noRepeat: element.noRepeat,
           theme: element.theme,
           uiLanguage: element.uiLanguage,
           assetsUrl: element.assetsUrl,
@@ -298,7 +302,7 @@ test.describe("FR-42 start options", () => {
     ] as const) {
       await openPlayground(page, { words: value });
       expect((await readState(page)).words).toBe(words);
-      await expect(part(page, "words-value")).toContainText(String(words));
+      await expect(wordsRadio(page, words)).toBeChecked();
     }
     for (const [value, length] of [
       ["8", 8],
@@ -317,8 +321,7 @@ test.describe("FR-42 start options", () => {
   test("FR-42 the user can still change all options in the UI", async ({ page }) => {
     await openPlayground(page, { words: "7", separator: "-", number: "true", theme: "dark" });
     expect(await readState(page)).toMatchObject({ words: 7, separator: "-", number: true });
-    await page.locator("[part=words] [role=slider]").focus();
-    await page.keyboard.press("Home");
+    await wordsRadio(page, 3).click();
     await expect.poll(async () => (await readState(page)).words).toBe(3);
     await part(page, "number").click();
     await expect.poll(async () => (await readState(page)).number).toBe(false);

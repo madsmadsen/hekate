@@ -22,6 +22,7 @@ The match of attribute values ignores uppercase and lowercase.
 | `length`         | A whole number from 8 to 64                                            | `20`                                                                 |
 | `charsets`       | A comma-separated list of `lower`, `upper`, `digits`, `symbols`        | `lower,upper,digits,symbols`                                         |
 | `avoid-similar`  | `true`, `false`                                                        | `false`                                                              |
+| `no-repeat`      | `true`, `false`                                                        | `false`                                                              |
 | `ui-language`    | A locale code that has a message file                                  | The first language of the browser that has a translation, or English |
 | `theme`          | `light`, `dark`, `auto`                                                | `auto`                                                               |
 | `assets-url`     | An absolute `https` URL of a folder (`http` is allowed on `localhost`) | The folder of `hekate.js`                                            |
@@ -80,12 +81,13 @@ The Credits link and the Credits dialog are not parts. A page cannot hide them.
 - `entropy`: the text with the entropy in bits.
 - `crack-time`: the text with the time to crack.
 - `crack-note`: the note about the guesses per second.
+- `strength-note`: the note that the strength assumes that the attacker knows how Hekate made the password.
+- `naive-strength`: the line with the estimate for an attacker who knows nothing about the password.
 - `password-length`: the text with the length of the password.
 - `options`: the box with all options.
 - `mode`: the choice between Words and Characters.
 - `language`: the language list.
-- `words`: the slider for the number of words.
-- `words-value`: the text with the number of words.
+- `words`: the radio buttons for the number of words.
 - `separator`: the choice of the separator.
 - `capitalization`: the choice of the capital letters.
 - `number`: the switch for the number.
@@ -96,15 +98,16 @@ The Credits link and the Credits dialog are not parts. A page cannot hide them.
 - `charsets`: the box with the character sets.
 - `charset`: one check box of a character set.
 - `avoid-similar`: the switch for similar characters.
+- `no-repeat`: the switch for no same character twice in a row.
 
 ## Selectors for tests
 
 Inside the shadow root, the component has stable ids: `#password`, `#credits-link`, `#credits`,
 `#credits-version`, `#credits-commit`, `#license-report`, `#credits-<language code>`, `#error`,
 `#copy-error`, `#words-warning`, `#length-warning`, `#ascii-note`, `#strength-label`, `#entropy`,
-`#crack-time`, and `#password-length`.
+`#crack-time`, `#strength-note`, `#naive-strength`, and `#password-length`.
 Playwright selectors pierce open shadow roots, for example `hekate-generator >> #password`.
-The focus target of a slider is `[part=words] >> [role=slider]`.
+The focus target of a slider is `[part=length] >> [role=slider]`.
 
 ## Notes
 

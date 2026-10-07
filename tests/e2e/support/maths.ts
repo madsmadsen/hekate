@@ -35,6 +35,30 @@ export function characterEntropy(length: number, setSizes: number[]): number {
   return log2(valid);
 }
 
+/**
+ * Appendix A.3: the entropy for an attacker who knows nothing about the password.
+ * `L` is the number of code points. `P` is the sum of the sizes of the groups in the password.
+ */
+export function naiveEntropy(text: string): number {
+  let pool = 0;
+  const seen = { lower: false, upper: false, digit: false, other: false, extended: false };
+  const codePoints = Array.from(text);
+  for (const character of codePoints) {
+    const code = character.codePointAt(0) as number;
+    if (code >= 0x61 && code <= 0x7a) seen.lower = true;
+    else if (code >= 0x41 && code <= 0x5a) seen.upper = true;
+    else if (code >= 0x30 && code <= 0x39) seen.digit = true;
+    else if (code >= 0x20 && code <= 0x7e) seen.other = true;
+    else seen.extended = true;
+  }
+  if (seen.lower) pool += 26;
+  if (seen.upper) pool += 26;
+  if (seen.digit) pool += 10;
+  if (seen.other) pool += 33;
+  if (seen.extended) pool += 190;
+  return codePoints.length === 0 ? 0 : codePoints.length * log2(pool);
+}
+
 /** The labels of FR-22. */
 export function strengthLabel(bits: number): "Weak" | "Fair" | "Strong" | "Very strong" {
   if (bits < 45) return "Weak";

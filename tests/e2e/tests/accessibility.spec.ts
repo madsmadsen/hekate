@@ -19,6 +19,7 @@ import {
   selectedLanguage,
   selectedText,
   waitForPassword,
+  wordsRadio,
 } from "../support/component.ts";
 import { clipboardWrites } from "../support/browser.ts";
 import { DEMO_ORIGIN, languageCodes } from "../support/env.ts";
@@ -92,12 +93,15 @@ test.describe("NFR-3 labels of PRD 8.4", () => {
     await expect(page.getByRole("button", { name: "Copy password", exact: true })).toBeVisible();
     await expect(page.getByRole("radiogroup", { name: "Password type" })).toBeVisible();
     await expect(page.getByRole("combobox", { name: "Word language" })).toBeVisible();
-    await expect(page.getByRole("slider", { name: "Number of words" })).toBeVisible();
+    await expect(page.getByRole("radiogroup", { name: "Number of words" })).toBeVisible();
     await expect(page.getByRole("radiogroup", { name: "Separator" })).toBeVisible();
     await expect(page.getByRole("radiogroup", { name: "Capital letters" })).toBeVisible();
     await expect(page.getByRole("switch", { name: "Add a number" })).toBeVisible();
     await expect(page.getByRole("switch", { name: "Add a symbol" })).toBeVisible();
     await expect(page.getByRole("switch", { name: "ASCII-only" })).toBeVisible();
+    await expect(
+      page.getByRole("switch", { name: /No same character twice in a row/ }),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "Credits", exact: true })).toBeVisible();
   });
 
@@ -108,6 +112,9 @@ test.describe("NFR-3 labels of PRD 8.4", () => {
       await expect(page.getByRole("checkbox", { name })).toBeVisible();
     }
     await expect(page.getByRole("switch", { name: /Avoid similar characters/ })).toBeVisible();
+    await expect(
+      page.getByRole("switch", { name: /No same character twice in a row/ }),
+    ).toBeVisible();
     await expect(page.getByRole("group", { name: "Character sets" })).toBeVisible();
   });
 });
@@ -138,21 +145,22 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     await openPlayground(page);
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     const seen: Array<{ role: string; label: string }> = [];
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 13; i++) {
       await page.keyboard.press("Tab");
       seen.push(await deepFocus(page));
     }
-    // The order of the page: field, 2 buttons, mode, language, slider, separator, capital
-    // letters, 3 switches and the Credits link. A radio group has one stop: its checked radio.
+    // The order of the page: field, 2 buttons, mode, language, number of words, separator, capital
+    // letters, 4 switches and the Credits link. A radio group has one stop: its checked radio.
     expect(seen.map((s) => s.role)).toEqual([
       "textbox",
       "button",
       "button",
       "radio",
       "combobox",
-      "slider",
       "radio",
       "radio",
+      "radio",
+      "switch",
       "switch",
       "switch",
       "switch",
@@ -160,7 +168,7 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     ]);
     expect(seen[1]?.label).toContain("New password");
     expect(seen[2]?.label).toContain("Copy");
-    expect(seen[11]?.label).toContain("credits-link");
+    expect(seen[12]?.label).toContain("credits-link");
   });
 
   test("NFR-3 password field: Tab moves the focus to the field and the user can select the text", async ({
@@ -182,9 +190,10 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     await button.focus();
     const before = (await wasmCalls(page)).length;
     await page.keyboard.press("Enter");
-    await expect.poll(async () => (await wasmCalls(page)).length).toBe(before + 1);
-    await page.keyboard.press("Space");
+    // Each click makes new words and builds the password: 2 calls.
     await expect.poll(async () => (await wasmCalls(page)).length).toBe(before + 2);
+    await page.keyboard.press("Space");
+    await expect.poll(async () => (await wasmCalls(page)).length).toBe(before + 4);
   });
 
   test("NFR-3 copy button: Enter or Space copies the password", async ({ page }) => {
@@ -233,25 +242,16 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     expect((await readState(page)).language).toBe(await selectedLanguage(page));
   });
 
-  test("NFR-3 number of words: arrow keys change the value by 1, Home selects 3 and End selects 10", async ({
-    page,
-  }) => {
+  test("NFR-3 number of words: the arrow keys select a number", async ({ page }) => {
     await openPlayground(page);
-    await page.locator("[part=words] [role=slider]").focus();
+    await wordsRadio(page, 5).focus();
     const words = async () => (await readState(page)).words;
     await page.keyboard.press("ArrowRight");
     await expect.poll(words).toBe(6);
+    await expect(wordsRadio(page, 6)).toBeChecked();
     await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("ArrowLeft");
     await expect.poll(words).toBe(4);
-    await page.keyboard.press("ArrowUp");
-    await expect.poll(words).toBe(5);
-    await page.keyboard.press("ArrowDown");
-    await expect.poll(words).toBe(4);
-    await page.keyboard.press("Home");
-    await expect.poll(words).toBe(3);
-    await page.keyboard.press("End");
-    await expect.poll(words).toBe(10);
   });
 
   test("NFR-3 separator and capital letters: the arrow keys select a value", async ({ page }) => {
@@ -271,7 +271,7 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     await expect.poll(async () => (await readState(page)).capitalization).toBe("lower");
   });
 
-  test("NFR-3 number, symbol and ASCII-only: Space turns the option on or off", async ({
+  test("NFR-3 number, symbol, ASCII-only and no-repeat: Space turns the option on or off", async ({
     page,
   }) => {
     await openPlayground(page);
@@ -279,6 +279,7 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
       ["Add a number", "number"],
       ["Add a symbol", "symbol"],
       ["ASCII-only", "asciiOnly"],
+      ["No same character twice in a row", "noRepeat"],
     ] as const) {
       await page.getByRole("switch", { name }).focus();
       await page.keyboard.press("Space");

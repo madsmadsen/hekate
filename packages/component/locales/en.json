@@ -7,15 +7,12 @@
   "action.copyFailed": "Copy failed. Select the password and copy it.",
   "action.retry": "Try again",
   "announce.newPassword": "New password generated",
+  "announce.passwordChanged": "Password changed. The words are the same.",
   "mode.label": "Password type",
   "mode.words": "Words",
   "mode.characters": "Characters",
   "language.label": "Word language",
   "words.label": "Number of words",
-  "words.value": {
-    "one": "{count} word",
-    "other": "{count} words"
-  },
   "words.warning": "A password with fewer than 4 words is easier to guess. Use at least 4 words.",
   "separator.label": "Separator",
   "separator.none": "None",
@@ -43,6 +40,7 @@
   "charset.digits": "Digits (0 to 9)",
   "charset.symbols": "Symbols (! # $ % & * + - = ? @ ^ _ ~ : ;)",
   "avoidSimilar.label": "Avoid similar characters (0, O, 1, l, I)",
+  "noRepeat.label": "No same character twice in a row (aa, aA, 11)",
   "strength.label": "Strength",
   "strength.weak": "Weak",
   "strength.fair": "Fair",
@@ -56,6 +54,9 @@
   "crack.approx": "~{value}",
   "crack.lessThan": "less than {value}",
   "crack.note": "The time assumes an attacker who makes 10 billion guesses per second.",
+  "strength.assumeWords": "This strength assumes that the attacker knows how Hekate made the password: random words from the {language} word list, with these options.",
+  "strength.assumeCharacters": "This strength assumes that the attacker knows how Hekate made the password: random characters from the selected sets, with this length.",
+  "strength.naive": "If the attacker knows nothing about the password: {strength}, {entropy}, time to crack {time}.",
   "password.length": {
     "one": "Length: {count} character",
     "other": "Length: {count} characters"

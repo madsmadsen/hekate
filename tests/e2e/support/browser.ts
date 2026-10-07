@@ -127,7 +127,7 @@ export async function randomCounts(page: Page): Promise<{ crypto: number; math: 
 }
 
 /**
- * Wraps the WASM exports `generateWords` and `generateCharacters`.
+ * Wraps the WASM exports `drawWords`, `worddraw_render` and `generateCharacters`.
  * `window.__wasm.calls` has one entry for each call, with its duration in milliseconds.
  * `window.__wasm.fail = true` makes the next calls throw (a fault in the password code).
  */
@@ -135,7 +135,12 @@ export async function instrumentWasm(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const state: NonNullable<Window["__wasm"]> = { calls: [], fail: false };
     window.__wasm = state;
-    const watched: Record<string, true> = { generateWords: true, generateCharacters: true };
+    // `worddraw_render` is the raw name that wasm-bindgen gives to `WordDraw.render`.
+    const watched: Record<string, true> = {
+      drawWords: true,
+      worddraw_render: true,
+      generateCharacters: true,
+    };
     const wrapExports = (exports: WebAssembly.Exports): WebAssembly.Exports => {
       const copy: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(exports)) {

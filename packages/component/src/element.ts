@@ -68,6 +68,8 @@ import {
   type Engine,
   type Generated,
   type Strength,
+  type WordDraw,
+  type WordStyle,
 } from "./engine.ts";
 import { defaultLanguage } from "./language.ts";
 import type { Manifest } from "./manifest.ts";
@@ -142,6 +144,7 @@ const STRENGTH_VARIANT: Record<Strength, "danger" | "warning" | "success" | "bra
 /** The word counts and lengths below these numbers get a warning (FR-3, FR-61). */
 const SHORT_WORDS = 4;
 const SHORT_LENGTH = 12;
+const WORD_COUNTS = Array.from({ length: WORDS_MAX - WORDS_MIN + 1 }, (_, i) => WORDS_MIN + i);
 
 const COPIED_MS = 1500;
 const ANNOUNCE_GAP_MS = 250;
@@ -227,6 +230,12 @@ export class HekateGenerator extends LitElement {
   avoidSimilar = DEFAULTS.avoidSimilar;
 
   @property({
+    attribute: "no-repeat",
+    converter: converter("no-repeat", parseBoolean, () => DEFAULTS.noRepeat),
+  })
+  noRepeat = DEFAULTS.noRepeat;
+
+  @property({
     attribute: "ui-language",
     converter: converter<string | undefined>("ui-language", parseUiLanguage, () => undefined),
   })
@@ -251,12 +260,15 @@ export class HekateGenerator extends LitElement {
   @state() private systemDark = false;
   @state() private creditsOpen = false;
   @state() private creditsShown = false;
-  /** The value of a slider while the user moves it. It becomes an option when the user lets go. */
-  @state() private wordsDraft: number | undefined;
+  /** The value of the length slider while the user moves it. It becomes an option when the user lets go. */
   @state() private lengthDraft: number | undefined;
 
   #engine: Engine | undefined;
   #started = false;
+  /** The words of the current password. A change of the style renders them again (FR-11). */
+  #draw: WordDraw | undefined;
+  /** True while a new set of words is on its way. A change of the style waits for it. */
+  #drawPending = false;
   #generation = 0;
   #generated = false;
   #copyTimer: ReturnType<typeof setTimeout> | undefined;
@@ -297,27 +309,26 @@ export class HekateGenerator extends LitElement {
   }
 
   override updated(changed: PropertyValues<this>): void {
-    // FR-8: a change of an option makes a new password.
-    if (this.#engine !== undefined && this.#generated && this.#affectsPassword(changed)) {
-      void this.#generate();
+    if (this.#engine !== undefined && this.#generated) {
+      // FR-8: a change of an option that makes the words makes a new password.
+      const drawKeys: Array<keyof HekateGenerator> =
+        this.mode === "words"
+          ? ["mode", "language", "words", "asciiOnly", "noRepeat"]
+          : ["mode", "length", "charsets", "avoidSimilar", "noRepeat"];
+      // FR-11: a change of the style keeps the words.
+      const styleKeys: Array<keyof HekateGenerator> = [
+        "separator",
+        "capitalization",
+        "number",
+        "symbol",
+      ];
+      if (drawKeys.some((key) => changed.has(key))) {
+        void this.#generate();
+      } else if (this.mode === "words" && styleKeys.some((key) => changed.has(key))) {
+        this.#restyle();
+      }
     }
     this.#announceWarnings();
-  }
-
-  #affectsPassword(changed: PropertyValues<this>): boolean {
-    const common = ["mode"];
-    const wordKeys = [
-      "language",
-      "words",
-      "separator",
-      "capitalization",
-      "number",
-      "symbol",
-      "asciiOnly",
-    ];
-    const characterKeys = ["length", "charsets", "avoidSimilar"];
-    const keys = [...common, ...(this.mode === "words" ? wordKeys : characterKeys)];
-    return keys.some((key) => changed.has(key as keyof HekateGenerator));
   }
 
   // --- Start -------------------------------------------------------------------------------
@@ -376,7 +387,30 @@ export class HekateGenerator extends LitElement {
     this.error = kind;
     this.result = undefined;
     this.busy = false;
+    this.#drawPending = false;
     this.#announce(this.#t(ERROR_MESSAGE[kind]));
+  }
+
+  get #style(): WordStyle {
+    return {
+      separator: this.separator,
+      capitalization: this.capitalization,
+      number: this.number,
+      symbol: this.symbol,
+    };
+  }
+
+  /** FR-11: the same words in the new style. */
+  #restyle(): void {
+    if (this.#draw === undefined || this.#drawPending || this.error !== undefined) return;
+    try {
+      this.result = this.#draw.render(this.#style);
+      this.copyState = undefined;
+      this.#announce(this.#t("announce.passwordChanged"));
+    } catch (error) {
+      console.error("Hekate: no password was made.", error);
+      this.#fail("generate");
+    }
   }
 
   async #generate(announce = true): Promise<void> {
@@ -388,6 +422,7 @@ export class HekateGenerator extends LitElement {
     const engine = this.#engine;
     if (engine === undefined) return;
     const ticket = ++this.#generation;
+    this.#drawPending = true;
     const wordMode = this.mode === "words";
     const language = this.#wordLanguage;
     const ascii = this.asciiOnly;
@@ -409,24 +444,30 @@ export class HekateGenerator extends LitElement {
         markWordlistLoaded(language, ascii);
       }
       if (ticket !== this.#generation) return;
-      const generated = wordMode
-        ? engine.generateWords({
-            language,
-            ascii,
-            words: this.words,
-            separator: this.separator,
-            capitalization: this.capitalization,
-            number: this.number,
-            symbol: this.symbol,
-          })
-        : engine.generateCharacters({
-            length: this.length,
-            charsets: this.charsets,
-            avoidSimilar: this.avoidSimilar,
-          });
+      let generated: Generated;
+      if (wordMode) {
+        // The style is read now, after the wait, so that a change during the load counts.
+        const draw = engine.drawWords({
+          language,
+          ascii,
+          words: this.words,
+          noRepeat: this.noRepeat,
+        });
+        this.#draw?.free();
+        this.#draw = draw;
+        generated = draw.render(this.#style);
+      } else {
+        generated = engine.generateCharacters({
+          length: this.length,
+          charsets: this.charsets,
+          avoidSimilar: this.avoidSimilar,
+          noRepeat: this.noRepeat,
+        });
+      }
       this.result = generated;
       this.error = undefined;
       this.busy = false;
+      this.#drawPending = false;
       if (announce) this.#announce(this.#t("announce.newPassword"));
     } catch (error) {
       if (ticket !== this.#generation) return;
@@ -700,6 +741,17 @@ export class HekateGenerator extends LitElement {
     const label = t(`strength.${strength}`);
     const bits = Math.round(result.entropyBits * 10) / 10;
     const time = formatCrackTime(result.crackSeconds, locale, t);
+    const language =
+      MANIFESTS.find((m) => m.code === this.#wordLanguage)?.name ?? this.#wordLanguage;
+    const note =
+      this.mode === "words"
+        ? t("strength.assumeWords", { language })
+        : t("strength.assumeCharacters");
+    const naive = t("strength.naive", {
+      strength: t(`strength.${result.naiveStrength}`),
+      entropy: t("entropy.value", { count: Math.round(result.naiveEntropyBits * 10) / 10 }),
+      time: formatCrackTime(result.naiveCrackSeconds, locale, t),
+    });
     return html`
       <div class=${classMap({ strength: true, [`strength-${strength}`]: true })} part="strength">
         <hekate-wa-progress-bar
@@ -720,6 +772,8 @@ export class HekateGenerator extends LitElement {
         </div>
         <p class="facts" part="crack-time" id="crack-time">${t("crack.label", { time })}</p>
         <p class="note" part="crack-note">${t("crack.note")}</p>
+        <p class="note" part="strength-note" id="strength-note">${note}</p>
+        <p class="facts" part="naive-strength" id="naive-strength">${naive}</p>
         <p class="facts" part="password-length" id="password-length">
           ${t("password.length", { count: Array.from(result.password).length })}
         </p>
@@ -729,7 +783,6 @@ export class HekateGenerator extends LitElement {
 
   #renderWordOptions(): TemplateResult {
     const t = this.#t;
-    const shown = this.wordsDraft ?? this.words;
     return html`
       <div class="option-group wide">
         <hekate-wa-select
@@ -750,21 +803,21 @@ export class HekateGenerator extends LitElement {
         </hekate-wa-select>
       </div>
       <div class="option-group wide">
-        <hekate-wa-slider
+        <hekate-wa-radio-group
           part="words"
           label=${t("words.label")}
-          min=${WORDS_MIN}
-          max=${WORDS_MAX}
-          step="1"
-          with-tooltip
-          .value=${this.words}
-          @input=${(event: ValueEvent) => (this.wordsDraft = Number(event.target?.value))}
+          orientation="horizontal"
+          .value=${String(this.words)}
           @change=${(event: ValueEvent) => {
-            this.wordsDraft = undefined;
-            this.words = Number(event.target?.value);
+            const value = intRange(WORDS_MIN, WORDS_MAX)(String(event.target?.value ?? ""));
+            if (value !== undefined) this.words = value;
           }}
-        ></hekate-wa-slider>
-        <span class="slider-value" part="words-value">${t("words.value", { count: shown })}</span>
+        >
+          ${WORD_COUNTS.map(
+            (n) =>
+              html`<hekate-wa-radio appearance="button" value=${String(n)}>${n}</hekate-wa-radio>`,
+          )}
+        </hekate-wa-radio-group>
       </div>
       <div class="option-group">
         <hekate-wa-radio-group
@@ -823,6 +876,12 @@ export class HekateGenerator extends LitElement {
           @change=${(event: ValueEvent) => (this.asciiOnly = event.target?.checked === true)}
           >${t("ascii.label")}</hekate-wa-switch
         >
+        <hekate-wa-switch
+          part="no-repeat"
+          .checked=${this.noRepeat}
+          @change=${(event: ValueEvent) => (this.noRepeat = event.target?.checked === true)}
+          >${t("noRepeat.label")}</hekate-wa-switch
+        >
       </div>
     `;
   }
@@ -873,6 +932,12 @@ export class HekateGenerator extends LitElement {
           .checked=${this.avoidSimilar}
           @change=${(event: ValueEvent) => (this.avoidSimilar = event.target?.checked === true)}
           >${t("avoidSimilar.label")}</hekate-wa-switch
+        >
+        <hekate-wa-switch
+          part="no-repeat"
+          .checked=${this.noRepeat}
+          @change=${(event: ValueEvent) => (this.noRepeat = event.target?.checked === true)}
+          >${t("noRepeat.label")}</hekate-wa-switch
         >
       </div>
     `;

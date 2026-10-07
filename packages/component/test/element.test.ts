@@ -6,33 +6,53 @@ import MANIFESTS from "virtual:hekate-manifests";
 import pseudo from "./pseudo-locale.json";
 import type { ManifestSource } from "../src/manifest.ts";
 import { clearLocaleCache, clearWordlistCache } from "../src/assets.ts";
+import { formatCrackTime } from "../src/crack-time.ts";
+import { createTranslator, type Catalog } from "../src/messages.ts";
+import en from "../locales/en.json";
 import {
   forgetLoadedWordlists,
   setEngineLoader,
   type CharacterOptions,
+  type DrawOptions,
   type Engine,
   type Generated,
-  type WordOptions,
+  type WordStyle,
 } from "../src/engine.ts";
 import { HekateGenerator } from "../src/element.ts";
 
 interface Counter {
-  words: WordOptions[];
+  /** The calls that make new words. */
+  draws: DrawOptions[];
+  /** The calls that build a password from the words, with the style of each call. */
+  renders: WordStyle[];
   characters: CharacterOptions[];
   lists: string[];
+  freed: number;
   engine: Engine;
 }
 
 function counter(): Counter {
   const result: Counter = {
-    words: [],
+    draws: [],
+    renders: [],
     characters: [],
     lists: [],
+    freed: 0,
     engine: {
       loadWordlist: (language, ascii) => void result.lists.push(`${language}|${ascii}`),
-      generateWords(options) {
-        result.words.push(options);
-        return fake(`Alpha${result.words.length}Bravo`, "w");
+      drawWords(options) {
+        result.draws.push(options);
+        const number = result.draws.length;
+        return {
+          render(style) {
+            result.renders.push(style);
+            const separator = style.separator === "-" ? "-" : "";
+            return fake(`Alpha${number}${separator}Bravo`, "w");
+          },
+          free() {
+            result.freed += 1;
+          },
+        };
       },
       generateCharacters(options) {
         result.characters.push(options);
@@ -50,7 +70,17 @@ function fake(password: string, kind: string, extra: Partial<Generated> = {}): G
     entropyBits: 64.6246,
     crackSeconds: 1.4215e9,
     strength: "strong",
+    naiveEntropyBits: 142.5,
+    naiveCrackSeconds: 1e30,
+    naiveStrength: "very-strong",
     ...extra,
+  };
+}
+
+/** An engine whose words are always the same `password`. */
+function fixedWords(password: string, extra: Partial<Generated> = {}): Partial<Engine> {
+  return {
+    drawWords: () => ({ render: () => fake(password, "w", extra), free() {} }),
   };
 }
 
@@ -131,7 +161,8 @@ describe("FR-8 new password", () => {
   test("FR-8 the component shows a password at the start, with one call", async () => {
     const page = new Page();
     await page.ready();
-    expect(engine.words).toHaveLength(1);
+    expect(engine.draws).toHaveLength(1);
+    expect(engine.renders).toHaveLength(1);
     expect(page.password).toBe("Alpha1Bravo");
   });
 
@@ -140,36 +171,93 @@ describe("FR-8 new password", () => {
     await page.ready();
     await page.click("[part=new-password-button]");
     await vi.waitFor(() => expect(page.password).toBe("Alpha2Bravo"));
-    expect(engine.words).toHaveLength(2);
+    expect(engine.draws).toHaveLength(2);
+    expect(engine.renders).toHaveLength(2);
   });
 
-  test("FR-8 each change of an option gives one call, in word mode", async () => {
+  test("FR-8 a change of the language, the number of words, ASCII-only or no-repeat gives new words", async () => {
     const page = new Page();
     await page.ready();
-    page.change("[part=separator]", { value: "-" });
-    await vi.waitFor(() => expect(engine.words).toHaveLength(2));
-    expect(engine.words[1]?.separator).toBe("-");
-    page.change("[part=capitalization]", { value: "random" });
-    await vi.waitFor(() => expect(engine.words).toHaveLength(3));
-    page.change("[part=number]", { checked: true });
-    await vi.waitFor(() => expect(engine.words).toHaveLength(4));
-    page.change("[part=symbol]", { checked: true });
-    await vi.waitFor(() => expect(engine.words).toHaveLength(5));
     page.change("[part=ascii-only]", { checked: true });
-    await vi.waitFor(() => expect(engine.words).toHaveLength(6));
-    expect(engine.words[5]).toMatchObject({
-      ascii: true,
+    await vi.waitFor(() => expect(engine.draws).toHaveLength(2));
+    expect(engine.renders).toHaveLength(2);
+    expect(engine.draws[1]?.ascii).toBe(true);
+    page.change("[part=words]", { value: "7" });
+    await vi.waitFor(() => expect(engine.draws).toHaveLength(3));
+    expect(engine.renders).toHaveLength(3);
+    expect(engine.draws[2]?.words).toBe(7);
+    page.change("[part=language]", { value: "sv" });
+    await vi.waitFor(() => expect(engine.draws).toHaveLength(4));
+    expect(engine.renders).toHaveLength(4);
+    expect(engine.draws[3]?.language).toBe("sv");
+    page.change("[part=no-repeat]", { checked: true });
+    await vi.waitFor(() => expect(engine.draws).toHaveLength(5));
+    expect(engine.renders).toHaveLength(5);
+    expect(engine.draws[4]?.noRepeat).toBe(true);
+    expect(engine.characters).toHaveLength(0);
+  });
+
+  test("FR-11 a change of the separator, the capital letters, the number or the symbol keeps the words", async () => {
+    const page = new Page();
+    await page.ready();
+    expect(page.password).toBe("Alpha1Bravo");
+    page.change("[part=separator]", { value: "-" });
+    await vi.waitFor(() => expect(engine.renders).toHaveLength(2));
+    expect(engine.renders[1]?.separator).toBe("-");
+    expect(page.password).toBe("Alpha1-Bravo");
+    page.change("[part=capitalization]", { value: "random" });
+    await vi.waitFor(() => expect(engine.renders).toHaveLength(3));
+    expect(engine.renders[2]?.capitalization).toBe("random");
+    page.change("[part=number]", { checked: true });
+    await vi.waitFor(() => expect(engine.renders).toHaveLength(4));
+    expect(engine.renders[3]?.number).toBe(true);
+    page.change("[part=symbol]", { checked: true });
+    await vi.waitFor(() => expect(engine.renders).toHaveLength(5));
+    expect(engine.renders[4]).toEqual({
+      separator: "-",
+      capitalization: "random",
       number: true,
       symbol: true,
-      capitalization: "random",
     });
-    page.change("[part=words]", { value: 7 });
-    await vi.waitFor(() => expect(engine.words).toHaveLength(7));
-    expect(engine.words[6]?.words).toBe(7);
-    page.change("[part=language]", { value: "sv" });
-    await vi.waitFor(() => expect(engine.words).toHaveLength(8));
-    expect(engine.words[7]?.language).toBe("sv");
+    await page.element.updateComplete;
+    expect(engine.draws).toHaveLength(1);
+    expect(page.password).toBe("Alpha1-Bravo");
+    await vi.waitFor(() => expect(page.live).toBe("Password changed. The words are the same."));
     expect(engine.characters).toHaveLength(0);
+  });
+
+  test("FR-11 a new password after a change of the style makes new words with that style", async () => {
+    const page = new Page({ separator: "-" });
+    await page.ready();
+    await page.click("[part=new-password-button]");
+    await vi.waitFor(() => expect(page.password).toBe("Alpha2-Bravo"));
+    expect(engine.draws).toHaveLength(2);
+    expect(engine.freed).toBe(1);
+  });
+
+  test("FR-11 a change of the style while the word list loads applies to the new words", async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        await gate;
+        return String(url).endsWith("words.txt")
+          ? new Response("alpha\nbravo\n")
+          : new Response("");
+      }),
+    );
+    const page = new Page();
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
+    page.element.separator = "-";
+    await page.element.updateComplete;
+    release();
+    await page.ready();
+    expect(engine.draws).toHaveLength(1);
+    expect(engine.renders).toEqual([
+      { separator: "-", capitalization: "title", number: false, symbol: false },
+    ]);
+    expect(page.password).toBe("Alpha1-Bravo");
   });
 
   test("FR-8 each change of an option gives one call, in character mode", async () => {
@@ -182,10 +270,13 @@ describe("FR-8 new password", () => {
     page.change("[part=avoid-similar]", { checked: true });
     await vi.waitFor(() => expect(engine.characters).toHaveLength(3));
     expect(engine.characters[2]?.avoidSimilar).toBe(true);
-    page.change("[part=charset]", { checked: false });
+    page.change("[part=no-repeat]", { checked: true });
     await vi.waitFor(() => expect(engine.characters).toHaveLength(4));
-    expect(engine.characters[3]?.charsets).toEqual(["upper", "digits", "symbols"]);
-    expect(engine.words).toHaveLength(0);
+    expect(engine.characters[3]?.noRepeat).toBe(true);
+    page.change("[part=charset]", { checked: false });
+    await vi.waitFor(() => expect(engine.characters).toHaveLength(5));
+    expect(engine.characters[4]?.charsets).toEqual(["upper", "digits", "symbols"]);
+    expect(engine.draws).toHaveLength(0);
   });
 
   test("FR-8 a change of the mode gives one call", async () => {
@@ -193,14 +284,14 @@ describe("FR-8 new password", () => {
     await page.ready();
     page.change("[part=mode]", { value: "characters" });
     await vi.waitFor(() => expect(engine.characters).toHaveLength(1));
-    expect(engine.words).toHaveLength(1);
+    expect(engine.draws).toHaveLength(1);
   });
 
   test("FR-8 a word list loads one time for each language", async () => {
     const page = new Page();
     await page.ready();
     await page.click("[part=new-password-button]");
-    await vi.waitFor(() => expect(engine.words).toHaveLength(2));
+    await vi.waitFor(() => expect(engine.draws).toHaveLength(2));
     expect(engine.lists).toEqual(["en-US|false"]);
   });
 
@@ -228,6 +319,48 @@ describe("FR-60, FR-62 modes and character sets", () => {
     expect(characters.$("[part=length]")).not.toBeNull();
   });
 
+  test("FR-12 the no-repeat switch shows in both modes and sets noRepeat", async () => {
+    const words = new Page();
+    await words.ready();
+    expect(words.$("[part=no-repeat]")).not.toBeNull();
+    expect(words.text("[part=no-repeat]")).toBe("No same character twice in a row (aa, aA, 11)");
+    expect(engine.draws[0]?.noRepeat).toBe(false);
+    const characters = new Page({ mode: "characters" });
+    await characters.ready();
+    expect(characters.$("[part=no-repeat]")).not.toBeNull();
+    expect(engine.characters[0]?.noRepeat).toBe(false);
+    const on = new Page({ "no-repeat": "true" });
+    await on.ready();
+    expect(engine.draws[1]?.noRepeat).toBe(true);
+  });
+
+  test("FR-3 the number of words is a group of 8 radio buttons from 3 to 10", async () => {
+    const page = new Page({ words: "6" });
+    await page.ready();
+    const group = page.$<Control>("[part=words]") as Control;
+    expect(group.tagName.toLowerCase()).toBe("hekate-wa-radio-group");
+    const radios = [...group.querySelectorAll("hekate-wa-radio")];
+    expect(radios.map((radio) => radio.getAttribute("value"))).toEqual([
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+    ]);
+    expect(radios.map((radio) => radio.textContent?.trim())).toEqual(
+      radios.map((radio) => radio.getAttribute("value")),
+    );
+    expect(radios.every((radio) => radio.getAttribute("appearance") === "button")).toBe(true);
+    expect(group.value).toBe("6");
+    page.change("[part=words]", { value: "10" });
+    await vi.waitFor(() => expect(engine.draws).toHaveLength(2));
+    expect(engine.draws[1]?.words).toBe(10);
+    expect(group.value).toBe("10");
+  });
+
   test("FR-62 the UI does not let the user turn off the last character set", async () => {
     const page = new Page({ mode: "characters", charsets: "digits" });
     await page.ready();
@@ -245,7 +378,7 @@ describe("FR-3, FR-61 warnings", () => {
     const page = new Page({ words: "3" });
     await page.ready();
     expect(page.$("#words-warning")?.textContent).toContain("fewer than 4 words");
-    page.change("[part=words]", { value: 4 });
+    page.change("[part=words]", { value: "4" });
     await vi.waitFor(() => expect(page.$("#words-warning")).toBeNull());
   });
 
@@ -329,6 +462,32 @@ describe("FR-20 to FR-23 strength", () => {
     );
   });
 
+  test("FR-20 the component shows the note about what the attacker knows, in each mode", async () => {
+    const words = new Page({ language: "sv" });
+    await words.ready();
+    expect(words.text("#strength-note")).toBe(
+      "This strength assumes that the attacker knows how Hekate made the password: random words from the Svenska word list, with these options.",
+    );
+    const characters = new Page({ mode: "characters" });
+    await characters.ready();
+    expect(characters.text("#strength-note")).toBe(
+      "This strength assumes that the attacker knows how Hekate made the password: random characters from the selected sets, with this length.",
+    );
+  });
+
+  test("FR-24 the component shows the line for an attacker who knows nothing", async () => {
+    const t = createTranslator(en as Catalog, en as Catalog, "en");
+    const words = new Page();
+    await words.ready();
+    const time = formatCrackTime(1e30, "en", t);
+    const expected = `If the attacker knows nothing about the password: Very strong, 142.5 bits of entropy, time to crack ${time}.`;
+    expect(words.text("#naive-strength")).toBe(expected);
+    const characters = new Page({ mode: "characters" });
+    await characters.ready();
+    expect(characters.text("#naive-strength")).toBe(expected);
+    expect(words.text("#strength-label")).toBe("Strong");
+  });
+
   test("FR-20 the component shows the entropy of the WASM module", async () => {
     const page = new Page();
     await page.ready();
@@ -338,7 +497,7 @@ describe("FR-20 to FR-23 strength", () => {
   test("FR-22 the label comes from the WASM module", async () => {
     setEngineLoader(async () => ({
       ...engine.engine,
-      generateWords: () => fake("Alpha", "w", { strength: "very-strong" }),
+      ...fixedWords("Alpha", { strength: "very-strong" }),
     }));
     const page = new Page();
     await page.ready();
@@ -348,7 +507,7 @@ describe("FR-20 to FR-23 strength", () => {
   test("FR-23 the length is the count of code points", async () => {
     setEngineLoader(async () => ({
       ...engine.engine,
-      generateWords: () => fake("Åa𝒳", "w"),
+      ...fixedWords("Åa𝒳"),
     }));
     const page = new Page();
     await page.ready();
@@ -358,7 +517,7 @@ describe("FR-20 to FR-23 strength", () => {
   test("NFR-8 the password is shown in runs with a part name for each kind", async () => {
     setEngineLoader(async () => ({
       ...engine.engine,
-      generateWords: () => fake("Ab-9!", "w", { kinds: "wwsny" }),
+      ...fixedWords("Ab-9!", { kinds: "wwsny" }),
     }));
     const page = new Page();
     await page.ready();
@@ -371,7 +530,7 @@ describe("FR-20 to FR-23 strength", () => {
   test("8.3 the note about non-ASCII letters shows only when the password has them", async () => {
     setEngineLoader(async () => ({
       ...engine.engine,
-      generateWords: () => fake("Käse", "w"),
+      ...fixedWords("Käse"),
     }));
     const page = new Page();
     await page.ready();
@@ -396,10 +555,13 @@ describe("FR-42 attributes", () => {
       language: "SV",
     });
     await page.ready();
-    expect(engine.words[0]).toEqual({
+    expect(engine.draws[0]).toEqual({
       language: "sv",
       ascii: true,
       words: 7,
+      noRepeat: false,
+    });
+    expect(engine.renders[0]).toEqual({
       separator: "-",
       capitalization: "random",
       number: true,
@@ -411,7 +573,8 @@ describe("FR-42 attributes", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const page = new Page({ words: "11", separator: "x", length: "7", mode: "nothing" });
     await page.ready();
-    expect(engine.words[0]).toMatchObject({ words: 5, separator: "none" });
+    expect(engine.draws[0]).toMatchObject({ words: 5 });
+    expect(engine.renders[0]).toMatchObject({ separator: "none" });
     expect(warn).toHaveBeenCalledTimes(4);
   });
 });
@@ -524,7 +687,7 @@ describe("Errors (5.7)", () => {
     const page = new Page();
     await vi.waitFor(() => expect(page.$("#error")?.textContent).toContain("not secure"));
     expect(page.$("#password")).toBeNull();
-    expect(engine.words).toHaveLength(0);
+    expect(engine.draws).toHaveLength(0);
   });
 
   test("FR-86 a browser without WebAssembly gives the error and no password", async () => {
@@ -534,7 +697,7 @@ describe("Errors (5.7)", () => {
       expect(page.$("#error")?.textContent).toContain("does not have a feature"),
     );
     expect(page.$("#password")).toBeNull();
-    expect(engine.words).toHaveLength(0);
+    expect(engine.draws).toHaveLength(0);
   });
 
   test("SR-3 without crypto.getRandomValues the component gives the error and no password", async () => {
@@ -544,14 +707,14 @@ describe("Errors (5.7)", () => {
       expect(page.$("#error")?.textContent).toContain("secure random numbers"),
     );
     expect(page.$("#password")).toBeNull();
-    expect(engine.words).toHaveLength(0);
+    expect(engine.draws).toHaveLength(0);
   });
 
   test("SR-3 a call that fails because of the random generator gives the error and no password", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     setEngineLoader(async () => ({
       ...engine.engine,
-      generateWords: () => {
+      drawWords: () => {
         throw new Error("secure random numbers are not available");
       },
     }));
@@ -612,7 +775,6 @@ describe("FR-70, FR-71, FR-87 UI language", () => {
       "[part=copy-button]",
       "[part=strength-label]",
       "[part=entropy]",
-      "[part=words-value]",
       "[part=warning]",
       "[part=crack-note]",
       "#password-length",
@@ -626,6 +788,9 @@ describe("FR-70, FR-71, FR-87 UI language", () => {
     for (const selector of texts) {
       expect(page.text(selector), selector).not.toMatch(english);
     }
+    // The time units come from Intl, so only the start of the line is a message.
+    expect(page.text("[part=naive-strength]")).toContain(pseudo["strength.naive"].slice(1, 6));
+    expect(page.text("[part=naive-strength]")).not.toContain("If the attacker");
     expect(page.$("[part=language] hekate-wa-option[value=sv]")?.textContent).toBe("Svenska");
     expect(page.$("[part=language] hekate-wa-option[value=en-US]")?.textContent).toBe(
       "English (US)",

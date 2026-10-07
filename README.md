@@ -17,9 +17,13 @@ Open a page that uses Hekate. The page shows a password when it loads.
 
 - Select **Words** or **Characters**.
 - In word mode, select the language and the number of words. You can add a number and a symbol. You can select the **ASCII only** option if a site does not accept letters like `é` or `ö`.
+- In word mode, a change of the separator, the capital letters, the number, or the symbol keeps the words.
+- If a site does not accept the same character two times next to each other, select **No same character twice in a row**. Uppercase and lowercase do not count, so `aA` is also not allowed. This option works in both modes.
 - In character mode, select the length and the character sets.
 - Select **New password** to make another password.
 - Select **Copy** to copy the password.
+
+Under the strength, the component shows two estimates. The main strength assumes that the attacker knows how Hekate made the password. A second line shows the estimate for an attacker who knows nothing about the password.
 
 **Hekate does not clear the clipboard.** A web page cannot clear the clipboard reliably after you leave the page. The password stays in the clipboard until you copy something else. Other programs on your device can read the clipboard. Paste the password where you need it, then copy some other text.
 
@@ -71,6 +75,7 @@ All attributes are optional. They set the start values of the options. The user 
 | `length`         | An integer from 8 to 64                                                                                                                  | `20`                                                                   |
 | `charsets`       | A comma-separated list of one or more of `lower`, `upper`, `digits`, `symbols`, for example `lower,digits`                               | `lower,upper,digits,symbols`                                           |
 | `avoid-similar`  | `true`, `false`                                                                                                                          | `false`                                                                |
+| `no-repeat`      | `true`, `false`                                                                                                                          | `false`                                                                |
 | `ui-language`    | A locale code that has a message file                                                                                                    | The first language of the browser that has a translation, else English |
 | `theme`          | `light`, `dark`, `auto`                                                                                                                  | `auto` (follows `prefers-color-scheme`)                                |
 | `assets-url`     | An absolute `https` URL of a folder. On `localhost`, an `http` URL is also allowed.                                                      | The folder of `hekate.js`                                              |
@@ -139,12 +144,13 @@ hekate-generator::part(copy-button) {
 - `entropy`
 - `crack-time`
 - `crack-note`
+- `strength-note`
+- `naive-strength`
 - `password-length`
 - `options`
 - `mode`
 - `language`
 - `words`
-- `words-value`
 - `separator`
 - `capitalization`
 - `number`
@@ -155,6 +161,7 @@ hekate-generator::part(copy-button) {
 - `charsets`
 - `charset`
 - `avoid-similar`
+- `no-repeat`
 
 The component works when its parent element is 320 px wide or wider. It uses container queries, which depend on the size of the parent element and not on the size of the screen.
 

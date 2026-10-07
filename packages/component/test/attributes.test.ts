@@ -118,6 +118,7 @@ describe("FR-42 attribute values", () => {
       asciiOnly: false,
       length: 20,
       avoidSimilar: false,
+      noRepeat: false,
       theme: "auto",
     });
     expect(DEFAULTS.charsets).toEqual(["lower", "upper", "digits", "symbols"]);

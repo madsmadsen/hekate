@@ -115,6 +115,7 @@ test.describe("FR-30 credits dialog", () => {
       'length="8"',
       'charsets="lower"',
       'avoid-similar="true"',
+      'no-repeat="true"',
       'ui-language="en"',
       'theme="dark"',
       `assets-url="${assetsBase}"`,
