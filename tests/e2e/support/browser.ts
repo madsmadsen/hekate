@@ -108,7 +108,7 @@ export async function countRandom(page: Page): Promise<void> {
       configurable: true,
       value: (array: ArrayBufferView) => {
         counts.crypto++;
-        return original(array as Uint8Array);
+        return original(array as Uint8Array<ArrayBuffer>);
       },
     });
     // The test wraps Math.random only to count the calls (SR-1: Hekate must make none).

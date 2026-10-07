@@ -7,7 +7,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { transformWithEsbuild, type Plugin } from "vite";
+import { transform as transformCss } from "lightningcss";
+import type { Plugin } from "vite";
 import { makeRenamer, webAwesomeDist, webAwesomeTags } from "./wa-rename.ts";
 
 const VIRTUAL = ["virtual:hekate-build", "virtual:hekate-manifests", "virtual:hekate-theme"];
@@ -165,10 +166,12 @@ export function hekateAssets(options: AssetsOptions): Plugin {
         return `export default ${JSON.stringify(manifests)};\n`;
       }
       if (id === "\0virtual:hekate-theme") {
-        return transformWithEsbuild(themeCss(rename), "theme.css", {
-          loader: "css",
+        const out = transformCss({
+          filename: "theme.css",
+          code: Buffer.from(themeCss(rename)),
           minify: true,
-        }).then((out) => `export default ${JSON.stringify(out.code)};\n`);
+        });
+        return `export default ${JSON.stringify(out.code.toString())};\n`;
       }
       return null;
     },

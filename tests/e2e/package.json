@@ -10,8 +10,8 @@
     "docker": "./run-in-docker.sh"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.0",
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "1.63.0",
-    "@types/node": "^24.0.0"
+    "@types/node": "^24.19.1"
   }
 }
