@@ -39,6 +39,7 @@ Set a property on the `<hekate-generator>` element, or on any parent element. Al
 - `--hekate-color-surface`: the background color of the component.
 - `--hekate-color-border`: the color of the border of the password box.
 - `--hekate-color-brand`: the color of the main button and of the switches, sliders, and selected buttons.
+- `--hekate-color-on-brand`: the color of the text on the main button and on the selected mode button. Use a color with a contrast of 4.5:1 or more against the brand color.
 - `--hekate-color-separator`: the color of the separators in a word password.
 - `--hekate-color-number`: the color of the number in a word password.
 - `--hekate-color-symbol`: the color of the symbols in a password.
@@ -62,8 +63,6 @@ The Credits link and the Credits dialog are not parts. A page cannot hide them.
 - `live-region`: the hidden text that screen readers announce.
 - `error`: a callout that shows an error.
 - `retry-button`: the "Try again" button of the error callout.
-- `warning`: a callout that shows a warning.
-- `ascii-note`: the note about letters that are not ASCII.
 - `password`: the box with the password.
 - `token-word`: the letters of a word in a word password.
 - `token-separator`: a separator in a word password.
@@ -78,18 +77,22 @@ The Credits link and the Credits dialog are not parts. A page cannot hide them.
 - `strength`: the box with the strength estimate.
 - `strength-bar`: the strength bar.
 - `strength-label`: the label "Weak", "Fair", "Strong", or "Very strong".
-- `entropy`: the text with the entropy in bits.
-- `crack-time`: the text with the time to crack.
-- `crack-note`: the note about the guesses per second.
-- `strength-note`: the note that the strength assumes that the attacker knows how Hekate made the password.
-- `naive-strength`: the line with the estimate for an attacker who knows nothing about the password.
+- `strength-info-button`: the info icon button next to the entropy text. It opens the info panel.
+- `strength-details`: the info panel. The panel is closed by default.
+- `strength-details-close`: the "Close" button of the info panel.
+- `entropy`: the text with the entropy in bits. It is always visible.
+- `crack-time`: the text with the time to crack. It is inside the info panel.
+- `crack-note`: the note about the guesses per second. It is inside the info panel.
+- `strength-note`: the note about what the attacker knows. It is inside the info panel.
+- `naive-strength`: the line with the length-based comparison. It is inside the info panel.
 - `password-length`: the text with the length of the password.
 - `options`: the box with all options.
 - `mode`: the choice between Words and Characters.
 - `language`: the language list.
-- `words`: the radio buttons for the number of words.
-- `separator`: the choice of the separator.
-- `capitalization`: the choice of the capital letters.
+- `words`: the slider for the number of words. It has numbers under the track.
+- `words-value`: the text with the number of words, for example "5 words".
+- `separator`: the radio buttons for the separator. Each button shows an example, for example `a-b`.
+- `capitalization`: the radio buttons for the capital letters. Each button shows an example, for example `Abc`.
 - `number`: the switch for the number.
 - `symbol`: the switch for the symbol.
 - `ascii-only`: the switch for ASCII-only.
@@ -100,12 +103,17 @@ The Credits link and the Credits dialog are not parts. A page cannot hide them.
 - `avoid-similar`: the switch for similar characters.
 - `no-repeat`: the switch for no same character twice in a row.
 
+The part `words` is a slider now. The parts `separator`, `capitalization`, and `mode` are radio groups. `separator` and `capitalization` show an example on each button, and all choices stay on one row.
+
+The info panel opens when the user hovers over the info icon, focuses it, or clicks it. The panel closes when the pointer leaves, unless the user opened it with a click or a key.
+
 ## Selectors for tests
 
 Inside the shadow root, the component has stable ids: `#password`, `#credits-link`, `#credits`,
 `#credits-version`, `#credits-commit`, `#license-report`, `#credits-<language code>`, `#error`,
-`#copy-error`, `#words-warning`, `#length-warning`, `#ascii-note`, `#strength-label`, `#entropy`,
-`#crack-time`, `#strength-note`, `#naive-strength`, and `#password-length`.
+`#copy-error`, `#strength-label`, `#strength-info`, `#strength-details`, `#strength-details-close`,
+`#entropy`, `#entropy-note`, `#crack-time`, `#strength-note`, `#naive-strength`,
+`#password-length`, `#charsets-label`, and `#charsets-hint`.
 Playwright selectors pierce open shadow roots, for example `hekate-generator >> #password`.
 The focus target of a slider is `[part=length] >> [role=slider]`.
 

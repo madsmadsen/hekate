@@ -81,6 +81,7 @@ hekate-generator::part(copy-button) {
 - `--hekate-color-surface`
 - `--hekate-color-border`
 - `--hekate-color-brand`
+- `--hekate-color-on-brand`
 - `--hekate-color-separator`
 - `--hekate-color-number`
 - `--hekate-color-symbol`
@@ -98,8 +99,6 @@ hekate-generator::part(copy-button) {
 - `live-region`
 - `error`
 - `retry-button`
-- `warning`
-- `ascii-note`
 - `password`
 - `token-word`
 - `token-separator`
@@ -114,6 +113,9 @@ hekate-generator::part(copy-button) {
 - `strength`
 - `strength-bar`
 - `strength-label`
+- `strength-info-button`
+- `strength-details`
+- `strength-details-close`
 - `entropy`
 - `crack-time`
 - `crack-note`
@@ -124,6 +126,7 @@ hekate-generator::part(copy-button) {
 - `mode`
 - `language`
 - `words`
+- `words-value`
 - `separator`
 - `capitalization`
 - `number`
@@ -135,6 +138,10 @@ hekate-generator::part(copy-button) {
 - `charset`
 - `avoid-similar`
 - `no-repeat`
+
+The part `entropy` is always visible. The parts `crack-time`, `crack-note`, `strength-note`, and `naive-strength` are inside the info panel. The panel is closed by default.
+
+The part `words` is a slider with numbers under the track. The parts `separator`, `capitalization`, and `mode` are radio groups. Each choice is one click, and all choices of a setting stay on one row.
 
 The component works when its parent element is 320 px wide or wider. It uses container queries, which depend on the size of the parent element and not on the size of the screen.
 
