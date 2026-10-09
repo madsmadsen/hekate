@@ -28,7 +28,9 @@ Want the full list of rules? Read the [product requirements](docs/PRD.md). The [
 Open a page that has Hekate. A password is waiting for you.
 
 <p align="center">
-  <img src="docs/images/hekate-demo.gif" alt="A short recording of Hekate in a browser. The user makes new word passwords and hovers over the info icon next to the entropy to read the strength details. Then the user picks a hyphen separator and 6 words, adds a number and a symbol, switches the language to Swedish and copies the password. Then the user switches to character mode, sets the length to 30 characters, makes a new password and copies it."" width="520">
+  <a href="docs/images/hekate-demo.mp4"><img src="docs/images/hekate-demo.gif" alt="A short screen recording of Hekate in a browser. A mouse pointer shows each move and click. The user makes new word passwords and hovers over the info icon next to the entropy to read the strength details. Then the user picks a hyphen separator and 6 words, adds a number and a symbol, switches the language to Swedish and copies the password. Then the user switches to character mode, sets the length to 30 characters, makes a new password and copies it."" width="420"></a>
+  <br>
+  <sub>Click the recording to open the video (MP4).</sub>
 </p>
 
 - Pick **Words** or **Characters**.
