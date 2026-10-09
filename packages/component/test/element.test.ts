@@ -334,31 +334,57 @@ describe("FR-60, FR-62 modes and character sets", () => {
     expect(engine.draws[1]?.noRepeat).toBe(true);
   });
 
-  test("FR-3 the number of words is a group of 8 radio buttons from 3 to 10", async () => {
+  test("FR-3 the number of words is a slider from 3 to 10 with a visible count", async () => {
     const page = new Page({ words: "6" });
     await page.ready();
-    const group = page.$<Control>("[part=words]") as Control;
-    expect(group.tagName.toLowerCase()).toBe("hekate-wa-radio-group");
-    const radios = [...group.querySelectorAll("hekate-wa-radio")];
-    expect(radios.map((radio) => radio.getAttribute("value"))).toEqual([
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-    ]);
-    expect(radios.map((radio) => radio.textContent?.trim())).toEqual(
-      radios.map((radio) => radio.getAttribute("value")),
-    );
-    expect(radios.every((radio) => radio.getAttribute("appearance") === "button")).toBe(true);
-    expect(group.value).toBe("6");
-    page.change("[part=words]", { value: "10" });
+    const slider = page.$<Control & { min?: string; max?: string }>("[part=words]") as Control;
+    expect(slider.tagName.toLowerCase()).toBe("hekate-wa-slider");
+    expect(slider.getAttribute("min")).toBe("3");
+    expect(slider.getAttribute("max")).toBe("10");
+    const marks = [...slider.querySelectorAll("[slot=reference]")].map((n) => n.textContent);
+    expect(marks).toEqual(["3", "4", "5", "6", "7", "8", "9", "10"]);
+    expect(page.text("[part=words-value]")).toBe("6 words");
+    page.change("[part=words]", { value: 10 });
     await vi.waitFor(() => expect(engine.draws).toHaveLength(2));
     expect(engine.draws[1]?.words).toBe(10);
-    expect(group.value).toBe("10");
+    await vi.waitFor(() => expect(page.text("[part=words-value]")).toBe("10 words"));
+  });
+
+  test("FR-4, FR-5 separator and capital letters are one radio group each, with a caption of the selected name", async () => {
+    const page = new Page();
+    await page.ready();
+    const radios = (part: string) => [
+      ...page.root.querySelectorAll(`[part=${part}] hekate-wa-radio`),
+    ];
+    expect(radios("separator").map((r) => r.getAttribute("value"))).toEqual([
+      "none",
+      "-",
+      ".",
+      "_",
+      "space",
+    ]);
+    expect(radios("separator").map((r) => r.getAttribute("aria-label"))).toEqual([
+      "ab, None",
+      "a-b, Hyphen (-)",
+      "a.b, Dot (.)",
+      "a_b, Underscore (_)",
+      "a b, Space",
+    ]);
+    expect(radios("capitalization").map((r) => r.textContent?.trim())).toEqual([
+      "abc",
+      "Abc",
+      "Abc abc",
+    ]);
+    const shown = (part: string) =>
+      page
+        .$(`[part=${part}] + .option-caption .caption-choice[data-selected=true]`)
+        ?.textContent?.trim();
+    expect(shown("separator")).toBe("None");
+    expect(shown("capitalization")).toBe("Title case");
+    page.change("[part=separator]", { value: "space" });
+    page.change("[part=capitalization]", { value: "random" });
+    await vi.waitFor(() => expect(shown("separator")).toBe("Space"));
+    expect(shown("capitalization")).toBe("Random");
   });
 
   test("FR-62 the UI does not let the user turn off the last character set", async () => {
@@ -370,31 +396,6 @@ describe("FR-60, FR-62 modes and character sets", () => {
     page.change("[part=charset]", { checked: false });
     await page.element.updateComplete;
     expect(engine.characters.every((call) => call.charsets.length >= 1)).toBe(true);
-  });
-});
-
-describe("FR-3, FR-61 warnings", () => {
-  test("FR-3 3 words show the warning and 4 words do not", async () => {
-    const page = new Page({ words: "3" });
-    await page.ready();
-    expect(page.$("#words-warning")?.textContent).toContain("fewer than 4 words");
-    page.change("[part=words]", { value: "4" });
-    await vi.waitFor(() => expect(page.$("#words-warning")).toBeNull());
-  });
-
-  test("FR-3 the live region announces the warning", async () => {
-    const page = new Page({ words: "3" });
-    await page.ready();
-    await vi.waitFor(() => expect(page.live).toContain("fewer than 4 words"));
-  });
-
-  test("FR-61 11 characters show the warning and 12 characters do not", async () => {
-    const page = new Page({ mode: "characters", length: "11" });
-    await page.ready();
-    expect(page.$("#length-warning")?.textContent).toContain("fewer than 12 characters");
-    await vi.waitFor(() => expect(page.live).toContain("fewer than 12 characters"));
-    page.change("[part=length]", { value: 12 });
-    await vi.waitFor(() => expect(page.$("#length-warning")).toBeNull());
   });
 });
 
@@ -450,15 +451,56 @@ describe("FR-9, FR-84 copy", () => {
     );
     await vi.waitFor(() => expect(page.live).toBe("Copy failed. Select the password and copy it."));
   });
+
+  test("FR-9 a copy that ends after a new password does not mark the new password as copied", async () => {
+    let resolve: () => void = () => {};
+    const promise = new Promise<void>((done) => (resolve = done));
+    const writeText = vi.fn(() => promise);
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText }, languages: ["en"] });
+    const page = new Page();
+    await page.ready();
+    await page.click("[part=copy-button]");
+    await page.click("[part=new-password-button]");
+    await vi.waitFor(() => expect(page.password).toBe("Alpha2Bravo"));
+    resolve();
+    await promise;
+    await page.element.updateComplete;
+    expect(page.text("[part=copy-status]")).toBe("");
+  });
+
+  test("FR-8 while a word list loads, Copy and New password are disabled and the old password stays", async () => {
+    const page = new Page();
+    await page.ready();
+    const old = page.password;
+    let release: () => void = () => {};
+    const gate = new Promise<void>((done) => (release = done));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        await gate;
+        return new Response("alpha\nbravo\n");
+      }),
+    );
+    page.change("[part=language]", { value: "sv" });
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalled());
+    await page.element.updateComplete;
+    expect(page.$("[part=copy-button]")?.hasAttribute("disabled")).toBe(true);
+    expect(page.$("[part=new-password-button]")?.hasAttribute("disabled")).toBe(true);
+    expect(page.password).toBe(old);
+    release();
+    await page.ready();
+    expect(page.$("[part=copy-button]")?.hasAttribute("disabled")).toBe(false);
+    expect(page.$("[part=new-password-button]")?.hasAttribute("disabled")).toBe(false);
+  });
 });
 
 describe("FR-20 to FR-23 strength", () => {
   test("FR-21 the component shows the time and the note from the WASM numbers", async () => {
     const page = new Page();
     await page.ready();
-    expect(page.text("#crack-time")).toBe("Time to crack: ~45 years");
+    expect(page.text("#crack-time")).toBe("Estimated time to crack: ~45 years");
     expect(page.text("[part=crack-note]")).toBe(
-      "The time assumes an attacker who makes 10 billion guesses per second.",
+      "This is an average estimate. It assumes an attacker who has the stored password data and makes 10 billion guesses per second.",
     );
   });
 
@@ -466,12 +508,12 @@ describe("FR-20 to FR-23 strength", () => {
     const words = new Page({ language: "sv" });
     await words.ready();
     expect(words.text("#strength-note")).toBe(
-      "This strength assumes that the attacker knows how Hekate made the password: random words from the Svenska word list, with these options.",
+      "This estimate assumes that the attacker knows that Hekate uses random words from the Svenska word list, and knows the selected options.",
     );
     const characters = new Page({ mode: "characters" });
     await characters.ready();
     expect(characters.text("#strength-note")).toBe(
-      "This strength assumes that the attacker knows how Hekate made the password: random characters from the selected sets, with this length.",
+      "This estimate assumes that the attacker knows that Hekate uses random characters, and knows the selected character sets and length.",
     );
   });
 
@@ -480,7 +522,7 @@ describe("FR-20 to FR-23 strength", () => {
     const words = new Page();
     await words.ready();
     const time = formatCrackTime(1e30, "en", t);
-    const expected = `If the attacker knows nothing about the password: Very strong, 142.5 bits of entropy, time to crack ${time}.`;
+    const expected = `Length-based comparison: Very strong, 142.5 bits of entropy, estimated time to crack ${time}. This comparison ignores how Hekate made the password. It uses only the length and the character groups, such as lowercase letters or digits.`;
     expect(words.text("#naive-strength")).toBe(expected);
     const characters = new Page({ mode: "characters" });
     await characters.ready();
@@ -527,19 +569,95 @@ describe("FR-20 to FR-23 strength", () => {
     expect(page.$("[part=token-symbol]")?.textContent).toBe("!");
   });
 
-  test("8.3 the note about non-ASCII letters shows only when the password has them", async () => {
-    setEngineLoader(async () => ({
-      ...engine.engine,
-      ...fixedWords("Käse"),
-    }));
+  test("FR-20 the entropy is always visible and the other details are in a closed panel", async () => {
     const page = new Page();
     await page.ready();
-    expect(page.$("#ascii-note")?.textContent).toBe(
-      "Some sites and devices do not accept these letters. If you cannot log in, turn on ASCII-only.",
-    );
-    const plain = new Page({ "ascii-only": "true" });
-    await plain.ready();
-    expect(plain.$("#ascii-note")).toBeNull();
+    const button = page.$("#strength-info") as HTMLElement;
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(button.getAttribute("aria-controls")).toBe("strength-details");
+    const panel = page.$("#strength-details") as HTMLElement;
+    expect(panel.hasAttribute("hidden")).toBe(true);
+    expect(page.text("#entropy")).toBe("64.6 bits of entropy");
+    expect(panel.querySelector("#entropy")).toBeNull();
+    for (const selector of [
+      "#entropy-note",
+      "#strength-note",
+      "#crack-time",
+      "[part=crack-note]",
+      "#naive-strength",
+    ]) {
+      expect(panel.querySelector(selector), selector).not.toBeNull();
+    }
+    for (const selector of ["#password-length", "#strength-label"]) {
+      expect(panel.querySelector(selector), selector).toBeNull();
+      expect(page.$(selector), selector).not.toBeNull();
+    }
+    // The icon is right after the entropy text.
+    expect(page.$("#entropy")?.nextElementSibling?.contains(button)).toBe(true);
+  });
+
+  test("FR-20 the details open after a hover, close after the pointer leaves, and close on Escape", async () => {
+    const page = new Page();
+    await page.ready();
+    vi.useFakeTimers();
+    const popup = page.$("#strength-popup") as HTMLElement;
+    const button = page.$("#strength-info") as HTMLElement;
+    popup.dispatchEvent(new Event("pointerenter"));
+    await vi.advanceTimersByTimeAsync(100);
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    await vi.advanceTimersByTimeAsync(100);
+    await page.element.updateComplete;
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(page.$("#strength-details")?.hasAttribute("hidden")).toBe(false);
+    popup.dispatchEvent(new Event("pointerleave"));
+    await vi.advanceTimersByTimeAsync(250);
+    await page.element.updateComplete;
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    popup.dispatchEvent(new Event("pointerenter"));
+    await vi.advanceTimersByTimeAsync(200);
+    await page.element.updateComplete;
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await page.element.updateComplete;
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    // After Escape the panel stays closed while the pointer stays on the icon.
+    popup.dispatchEvent(new Event("pointerenter"));
+    await vi.advanceTimersByTimeAsync(300);
+    await page.element.updateComplete;
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("FR-20 a click on the icon keeps the details open when the pointer leaves", async () => {
+    const page = new Page();
+    await page.ready();
+    vi.useFakeTimers();
+    const popup = page.$("#strength-popup") as HTMLElement;
+    await page.click("#strength-info");
+    expect(page.$("#strength-info")?.getAttribute("aria-expanded")).toBe("true");
+    popup.dispatchEvent(new Event("pointerleave"));
+    await vi.advanceTimersByTimeAsync(500);
+    await page.element.updateComplete;
+    expect(page.$("#strength-info")?.getAttribute("aria-expanded")).toBe("true");
+    await page.click("#strength-info");
+    expect(page.$("#strength-info")?.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  test("FR-62 the character sets have a visible label and the hint about the last set", async () => {
+    const page = new Page({ mode: "characters" });
+    await page.ready();
+    expect(page.text("#charsets-label")).toBe("Character sets");
+    expect(page.text("#charsets-hint")).toBe("Keep at least one character set on.");
+    expect(page.$("[part=charsets]")?.getAttribute("aria-labelledby")).toBe("charsets-label");
+  });
+
+  test("FR-71 the UI root has the lang of the UI language", async () => {
+    const page = new Page({ language: "sv" });
+    await page.ready();
+    expect(page.$(".root")?.getAttribute("lang")).toBe("en");
+    expect(page.$("#password")?.getAttribute("lang")).toBe("sv");
+    const pseudoPage = new Page({ "ui-language": "qps" });
+    await pseudoPage.ready();
+    expect(pseudoPage.$(".root")?.getAttribute("lang")).toBe("en");
   });
 });
 
@@ -775,12 +893,11 @@ describe("FR-70, FR-71, FR-87 UI language", () => {
       "[part=copy-button]",
       "[part=strength-label]",
       "[part=entropy]",
-      "[part=warning]",
       "[part=crack-note]",
       "#password-length",
       "[part=mode]",
-      "[part=separator]",
-      "[part=capitalization]",
+      "[part=separator] + .option-caption",
+      "[part=capitalization] + .option-caption",
       "[part=number]",
       "[part=ascii-only]",
       "#credits-link",

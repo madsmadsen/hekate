@@ -96,7 +96,7 @@ describe("FR-21 time to crack", () => {
 
   test("FR-21 the note text is in the message file", () => {
     expect(t("crack.note")).toBe(
-      "The time assumes an attacker who makes 10 billion guesses per second.",
+      "This is an average estimate. It assumes an attacker who has the stored password data and makes 10 billion guesses per second.",
     );
   });
 

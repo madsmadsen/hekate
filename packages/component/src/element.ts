@@ -19,6 +19,7 @@ import "@awesome.me/webawesome/dist/components/checkbox/checkbox.js";
 import "@awesome.me/webawesome/dist/components/dialog/dialog.js";
 import "@awesome.me/webawesome/dist/components/icon/icon.js";
 import "@awesome.me/webawesome/dist/components/option/option.js";
+import "@awesome.me/webawesome/dist/components/popup/popup.js";
 import "@awesome.me/webawesome/dist/components/progress-bar/progress-bar.js";
 import "@awesome.me/webawesome/dist/components/radio/radio.js";
 import "@awesome.me/webawesome/dist/components/radio-group/radio-group.js";
@@ -141,12 +142,26 @@ const STRENGTH_VARIANT: Record<Strength, "danger" | "warning" | "success" | "bra
   "very-strong": "brand",
 };
 
-/** The word counts and lengths below these numbers get a warning (FR-3, FR-61). */
-const SHORT_WORDS = 4;
-const SHORT_LENGTH = 12;
 const WORD_COUNTS = Array.from({ length: WORDS_MAX - WORDS_MIN + 1 }, (_, i) => WORDS_MIN + i);
 
+/** The sample text on the buttons. It shows the effect. The full name is the accessible name. */
+const SEPARATOR_EXAMPLE: Record<Separator, string> = {
+  none: "ab",
+  "-": "a-b",
+  ".": "a.b",
+  _: "a_b",
+  space: "a b",
+};
+const CAPITALIZATION_EXAMPLE: Record<Capitalization, string> = {
+  lower: "abc",
+  title: "Abc",
+  random: "Abc abc",
+};
+
 const COPIED_MS = 1500;
+/** The strength details open after 150 ms of hover and close 200 ms after the pointer leaves. */
+const HOVER_OPEN_MS = 150;
+const HOVER_CLOSE_MS = 200;
 const ANNOUNCE_GAP_MS = 250;
 
 /** The locale for `Intl`. The test pseudo-locale uses English rules. */
@@ -259,9 +274,12 @@ export class HekateGenerator extends LitElement {
   @state() private locale = "en";
   @state() private systemDark = false;
   @state() private creditsOpen = false;
+  @state() private detailsOpen = false;
   @state() private creditsShown = false;
   /** The value of the length slider while the user moves it. It becomes an option when the user lets go. */
   @state() private lengthDraft: number | undefined;
+  /** The value of the words slider while the user moves it. */
+  @state() private wordsDraft: number | undefined;
 
   #engine: Engine | undefined;
   #started = false;
@@ -274,7 +292,12 @@ export class HekateGenerator extends LitElement {
   #copyTimer: ReturnType<typeof setTimeout> | undefined;
   #announcements: string[] = [];
   #announcing = false;
-  #activeWarnings = "";
+  #resultLanguage: string | undefined;
+  #detailsTimer: ReturnType<typeof setTimeout> | undefined;
+  /** True when the user opened the panel by a click or a key. Moving the pointer away keeps it open. */
+  #pinned = false;
+  /** True after the user closed the panel. It stays closed until the pointer and the focus leave. */
+  #suppressed = false;
   #dark: MediaQueryList | undefined;
   readonly #onSchemeChange = (event: MediaQueryListEvent): void => {
     this.systemDark = event.matches;
@@ -299,6 +322,10 @@ export class HekateGenerator extends LitElement {
     super.disconnectedCallback();
     this.#dark?.removeEventListener("change", this.#onSchemeChange);
     clearTimeout(this.#copyTimer);
+    clearTimeout(this.#detailsTimer);
+    document.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+    document.removeEventListener("keydown", this.#onDocumentKeyDown, true);
+    this.detailsOpen = false;
   }
 
   override willUpdate(changed: PropertyValues<this>): void {
@@ -328,7 +355,6 @@ export class HekateGenerator extends LitElement {
         this.#restyle();
       }
     }
-    this.#announceWarnings();
   }
 
   // --- Start -------------------------------------------------------------------------------
@@ -464,6 +490,7 @@ export class HekateGenerator extends LitElement {
           noRepeat: this.noRepeat,
         });
       }
+      this.#resultLanguage = wordMode ? language : undefined;
       this.result = generated;
       this.error = undefined;
       this.busy = false;
@@ -507,56 +534,24 @@ export class HekateGenerator extends LitElement {
     this.#announcing = false;
   }
 
-  get #warnings(): { words: boolean; length: boolean; ascii: boolean } {
-    const password = this.result?.password ?? "";
-    return {
-      words:
-        this.mode === "words" && this.words < SHORT_WORDS && !FATAL.has(this.error as ErrorKind),
-      length:
-        this.mode === "characters" &&
-        this.length < SHORT_LENGTH &&
-        !FATAL.has(this.error as ErrorKind),
-      // eslint-disable-next-line no-control-regex
-      ascii: this.mode === "words" && !this.asciiOnly && /[^\u0000-\u007f]/.test(password),
-    };
-  }
-
-  /** FR-3, FR-61, 8.3: a new warning goes to the live region. */
-  #announceWarnings(): void {
-    // Before the start has finished, the message file of the UI language may not be loaded.
-    // A warning that is announced now would be in English (FR-70, SR-9).
-    if (!this.#generated) return;
-    const now = this.#warnings;
-    const active = (Object.keys(now) as Array<keyof typeof now>)
-      .filter((key) => now[key])
-      .join(",");
-    if (active === this.#activeWarnings) return;
-    const before = new Set(this.#activeWarnings.split(",").filter(Boolean));
-    this.#activeWarnings = active;
-    const messages = {
-      words: "words.warning",
-      length: "length.warning",
-      ascii: "ascii.note",
-    } as const;
-    for (const key of active.split(",").filter(Boolean) as Array<keyof typeof messages>) {
-      if (!before.has(key)) this.#announce(this.#t(messages[key]));
-    }
-  }
-
   // --- Actions -----------------------------------------------------------------------------
 
   async #copy(): Promise<void> {
     clearTimeout(this.#copyTimer);
-    const password = this.result?.password;
+    const shown = this.result;
+    const password = shown?.password;
     if (password === undefined) return;
     try {
       if (typeof navigator.clipboard?.writeText !== "function") throw new Error("no clipboard");
       await navigator.clipboard.writeText(password);
+      // A new password came while the copy ran. The message would be about the wrong password.
+      if (this.result !== shown) return;
       this.copyState = "copied";
       this.#announce(this.#t("action.copied"));
       // FR-9: the message shows for 2 seconds or less.
       this.#copyTimer = setTimeout(() => (this.copyState = undefined), COPIED_MS);
     } catch {
+      if (this.result !== shown) return;
       this.copyState = "failed";
       this.#announce(this.#t("action.copyFailed"));
       this.#selectPassword();
@@ -592,6 +587,110 @@ export class HekateGenerator extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("#credits-link")?.focus();
   }
 
+  // --- Strength details: opens on hover, focus, or click ----------------------------------
+
+  get #detailsPopup(): HTMLElement | null {
+    return this.renderRoot.querySelector<HTMLElement>("#strength-popup");
+  }
+
+  #setDetails(open: boolean): void {
+    clearTimeout(this.#detailsTimer);
+    if (open === this.detailsOpen) return;
+    this.detailsOpen = open;
+    if (open) {
+      document.addEventListener("pointerdown", this.#onDocumentPointerDown, true);
+      document.addEventListener("keydown", this.#onDocumentKeyDown, true);
+    } else {
+      this.#pinned = false;
+      document.removeEventListener("pointerdown", this.#onDocumentPointerDown, true);
+      document.removeEventListener("keydown", this.#onDocumentKeyDown, true);
+    }
+  }
+
+  #focusInfo(): void {
+    this.renderRoot.querySelector<HTMLElement>("#strength-info")?.focus({ preventScroll: true });
+  }
+
+  /** Closes the panel by choice. It does not open again until the pointer and the focus have left. */
+  #dismissDetails(): void {
+    this.#suppressed = true;
+    this.#setDetails(false);
+  }
+
+  readonly #onDocumentPointerDown = (event: Event): void => {
+    const popup = this.#detailsPopup;
+    if (popup !== null && !event.composedPath().includes(popup)) this.#setDetails(false);
+  };
+
+  readonly #onDocumentKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== "Escape" || !this.detailsOpen) return;
+    const popup = this.#detailsPopup;
+    const active = this.shadowRoot?.activeElement ?? null;
+    const inside = popup !== null && active !== null && popup.contains(active);
+    this.#dismissDetails();
+    if (inside) this.#focusInfo();
+  };
+
+  #onDetailsPointerEnter(event: PointerEvent): void {
+    if (event.pointerType === "touch") return;
+    if (this.detailsOpen) {
+      clearTimeout(this.#detailsTimer);
+      return;
+    }
+    if (this.#suppressed) return;
+    clearTimeout(this.#detailsTimer);
+    this.#detailsTimer = setTimeout(() => this.#setDetails(true), HOVER_OPEN_MS);
+  }
+
+  #onDetailsPointerLeave(event: PointerEvent): void {
+    if (event.pointerType === "touch") return;
+    this.#suppressed = false;
+    clearTimeout(this.#detailsTimer);
+    if (!this.detailsOpen || this.#pinned) return;
+    const popup = this.#detailsPopup;
+    const active = this.shadowRoot?.activeElement ?? null;
+    if (popup !== null && active !== null && popup.contains(active)) return;
+    this.#detailsTimer = setTimeout(() => this.#setDetails(false), HOVER_CLOSE_MS);
+  }
+
+  /** Keyboard focus on the icon opens the panel. A click that focuses the icon does not. */
+  #onDetailsFocusIn(event: FocusEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.id !== "strength-info" || this.#suppressed) return;
+    if (typeof target.matches === "function" && target.matches(":focus-visible")) {
+      this.#setDetails(true);
+    }
+  }
+
+  #onDetailsFocusOut(event: FocusEvent): void {
+    const popup = this.#detailsPopup;
+    const next = event.relatedTarget as Node | null;
+    if ((event.target as HTMLElement).id === "strength-info") this.#suppressed = false;
+    if (popup === null || next === null || popup.contains(next)) return;
+    this.#setDetails(false);
+  }
+
+  #onInfoClick(): void {
+    clearTimeout(this.#detailsTimer);
+    if (this.detailsOpen && this.#pinned) {
+      this.#dismissDetails();
+      return;
+    }
+    this.#suppressed = false;
+    this.#setDetails(true);
+    this.#pinned = true;
+    void this.updateComplete.then(() =>
+      this.renderRoot
+        .querySelector<HTMLElement>("#strength-details-title")
+        ?.focus({ preventScroll: true }),
+    );
+  }
+
+  #onDetailsClose(): void {
+    this.#dismissDetails();
+    this.#focusInfo();
+  }
+
   // --- Rendering ---------------------------------------------------------------------------
 
   #t: Translator = (key, params) =>
@@ -606,6 +705,7 @@ export class HekateGenerator extends LitElement {
     return html`
       <div
         class=${classMap({ root: true, [this.#themeClass]: true, [`wa-${this.#themeClass}`]: true })}
+        lang=${intlLocale(this.locale)}
       >
         <div class="base" part="base">
           <div
@@ -654,7 +754,6 @@ export class HekateGenerator extends LitElement {
 
   #renderMain(): TemplateResult {
     const t = this.#t;
-    const warnings = this.#warnings;
     const result = this.result;
     return html`
       <div class="main">
@@ -668,6 +767,7 @@ export class HekateGenerator extends LitElement {
             aria-readonly="true"
             aria-labelledby="password-label"
             aria-busy=${this.busy ? "true" : "false"}
+            lang=${ifDefined(this.mode === "words" ? this.#resultLanguage : undefined)}
             tabindex="0"
           >${this.#renderPassword(result)}</div>
         </div>
@@ -676,6 +776,7 @@ export class HekateGenerator extends LitElement {
             part="new-password-button"
             variant="brand"
             with-start
+            ?disabled=${this.busy}
             @click=${() => void this.#generate()}
           >
             <hekate-wa-icon
@@ -691,7 +792,7 @@ export class HekateGenerator extends LitElement {
             appearance="outlined"
             variant="neutral"
             with-start
-            ?disabled=${result === undefined}
+            ?disabled=${result === undefined || this.busy}
             @click=${() => void this.#copy()}
           >
             <hekate-wa-icon
@@ -713,9 +814,6 @@ export class HekateGenerator extends LitElement {
               >`
             : nothing
         }
-        ${warnings.words ? html`<hekate-wa-callout variant="warning" part="warning" id="words-warning">${t("words.warning")}</hekate-wa-callout>` : nothing}
-        ${warnings.length ? html`<hekate-wa-callout variant="warning" part="warning" id="length-warning">${t("length.warning")}</hekate-wa-callout>` : nothing}
-        ${warnings.ascii ? html`<hekate-wa-callout variant="neutral" part="ascii-note" id="ascii-note">${t("ascii.note")}</hekate-wa-callout>` : nothing}
         ${result ? this.#renderStrength(result) : nothing}
         <div class="options" part="options">
           ${this.#renderModeSwitch()}${this.mode === "words" ? this.#renderWordOptions() : this.#renderCharacterOptions()}
@@ -741,8 +839,8 @@ export class HekateGenerator extends LitElement {
     const label = t(`strength.${strength}`);
     const bits = Math.round(result.entropyBits * 10) / 10;
     const time = formatCrackTime(result.crackSeconds, locale, t);
-    const language =
-      MANIFESTS.find((m) => m.code === this.#wordLanguage)?.name ?? this.#wordLanguage;
+    const shownLanguage = this.#resultLanguage ?? this.#wordLanguage;
+    const language = MANIFESTS.find((m) => m.code === shownLanguage)?.name ?? shownLanguage;
     const note =
       this.mode === "words"
         ? t("strength.assumeWords", { language })
@@ -753,32 +851,129 @@ export class HekateGenerator extends LitElement {
       time: formatCrackTime(result.naiveCrackSeconds, locale, t),
     });
     return html`
-      <div class=${classMap({ strength: true, [`strength-${strength}`]: true })} part="strength">
-        <hekate-wa-progress-bar
-          part="strength-bar"
-          value=${STRENGTH_PERCENT[strength]}
-          label=${`${t("strength.label")}: ${label}`}
-        ></hekate-wa-progress-bar>
+      <div
+        class=${classMap({ strength: true, [`strength-${strength}`]: true })}
+        part="strength"
+        aria-busy=${this.busy ? "true" : "false"}
+      >
         <div class="strength-head">
+          <span class="strength-title">${t("strength.label")}</span>
           <hekate-wa-badge
             variant=${STRENGTH_VARIANT[strength]}
             part="strength-label"
             id="strength-label"
             >${label}</hekate-wa-badge
           >
-          <span class="facts" part="entropy" id="entropy"
-            >${t("entropy.value", { count: bits })}</span
-          >
         </div>
-        <p class="facts" part="crack-time" id="crack-time">${t("crack.label", { time })}</p>
-        <p class="note" part="crack-note">${t("crack.note")}</p>
-        <p class="note" part="strength-note" id="strength-note">${note}</p>
-        <p class="facts" part="naive-strength" id="naive-strength">${naive}</p>
+        <div class="strength-track">
+          <hekate-wa-progress-bar
+            part="strength-bar"
+            value=${STRENGTH_PERCENT[strength]}
+            label=${`${t("strength.label")}: ${label}`}
+          ></hekate-wa-progress-bar>
+        </div>
+        <div class="entropy-row">
+          <p class="facts" part="entropy" id="entropy">${t("entropy.value", { count: bits })}</p>
+          <hekate-wa-popup
+            id="strength-popup"
+            class="strength-popup"
+            placement="bottom-end"
+            distance="4"
+            flip
+            shift
+            flip-padding="8"
+            shift-padding="8"
+            auto-size="vertical"
+            auto-size-padding="8"
+            hover-bridge
+            .active=${this.detailsOpen}
+            @pointerenter=${this.#onDetailsPointerEnter}
+            @pointerleave=${this.#onDetailsPointerLeave}
+            @focusin=${this.#onDetailsFocusIn}
+            @focusout=${this.#onDetailsFocusOut}
+          >
+            <button
+              slot="anchor"
+              type="button"
+              id="strength-info"
+              class="info-button"
+              part="strength-info-button"
+              aria-label=${t("strength.detailsLabel")}
+              aria-haspopup="dialog"
+              aria-expanded=${this.detailsOpen ? "true" : "false"}
+              aria-controls="strength-details"
+              @click=${this.#onInfoClick}
+            >
+              <hekate-wa-icon
+                library="system"
+                name="info-circle"
+                aria-hidden="true"
+              ></hekate-wa-icon>
+            </button>
+            <section
+              id="strength-details"
+              class="strength-details"
+              part="strength-details"
+              role="dialog"
+              aria-modal="false"
+              aria-labelledby="strength-details-title"
+              ?hidden=${!this.detailsOpen}
+            >
+              <div class="strength-details-header">
+                <h2 id="strength-details-title" class="strength-details-title" tabindex="-1">
+                  ${t("strength.detailsLabel")}
+                </h2>
+                <hekate-wa-button
+                  id="strength-details-close"
+                  part="strength-details-close"
+                  appearance="plain"
+                  size="small"
+                  @click=${this.#onDetailsClose}
+                >
+                  <hekate-wa-icon
+                    library="system"
+                    name="xmark"
+                    label=${t("strength.detailsClose")}
+                  ></hekate-wa-icon>
+                </hekate-wa-button>
+              </div>
+              <p class="note" id="entropy-note">${t("entropy.note")}</p>
+              <p class="note" part="strength-note" id="strength-note">${note}</p>
+              <p class="facts" part="crack-time" id="crack-time">${t("crack.label", { time })}</p>
+              <p class="note" part="crack-note">${t("crack.note")}</p>
+              <p class="facts" part="naive-strength" id="naive-strength">${naive}</p>
+            </section>
+          </hekate-wa-popup>
+        </div>
         <p class="facts" part="password-length" id="password-length">
           ${t("password.length", { count: Array.from(result.password).length })}
         </p>
       </div>
     `;
+  }
+
+  #renderExampleRadio(value: string, example: string, name: string): TemplateResult {
+    return html`<hekate-wa-radio
+      appearance="button"
+      value=${value}
+      aria-label=${this.#t("option.exampleName", { example, name })}
+      ><span class="option-example" lang="en" dir="ltr" aria-hidden="true">${example}</span></hekate-wa-radio
+    >`;
+  }
+
+  /** All names share one grid cell, so the longest name sets the height. Only the selected one shows. */
+  #renderCaption(choices: Array<{ name: string; selected: boolean }>): TemplateResult {
+    return html`<p class="option-caption">
+      ${choices.map(
+        (choice) =>
+          html`<span
+            class="caption-choice"
+            data-selected=${choice.selected ? "true" : "false"}
+            aria-hidden=${choice.selected ? "false" : "true"}
+            >${choice.name}</span
+          >`,
+      )}
+    </p>`;
   }
 
   #renderWordOptions(): TemplateResult {
@@ -803,25 +998,35 @@ export class HekateGenerator extends LitElement {
         </hekate-wa-select>
       </div>
       <div class="option-group wide">
-        <hekate-wa-radio-group
+        <hekate-wa-slider
           part="words"
           label=${t("words.label")}
-          orientation="horizontal"
-          .value=${String(this.words)}
+          min=${WORDS_MIN}
+          max=${WORDS_MAX}
+          step="1"
+          with-markers
+          .valueFormatter=${(n: number) => t("words.value", { count: n })}
+          .value=${this.words}
+          @input=${(event: ValueEvent) => (this.wordsDraft = Number(event.target?.value))}
           @change=${(event: ValueEvent) => {
+            this.wordsDraft = undefined;
             const value = intRange(WORDS_MIN, WORDS_MAX)(String(event.target?.value ?? ""));
             if (value !== undefined) this.words = value;
           }}
         >
           ${WORD_COUNTS.map(
             (n) =>
-              html`<hekate-wa-radio appearance="button" value=${String(n)}>${n}</hekate-wa-radio>`,
+              html`<span slot="reference" class="word-reference" aria-hidden="true">${n}</span>`,
           )}
-        </hekate-wa-radio-group>
+        </hekate-wa-slider>
+        <span class="slider-value" part="words-value" aria-hidden="true"
+          >${t("words.value", { count: this.wordsDraft ?? this.words })}</span
+        >
       </div>
-      <div class="option-group">
+      <div class="option-group wide">
         <hekate-wa-radio-group
           part="separator"
+          class="word-segments separator-segments"
           label=${t("separator.label")}
           orientation="horizontal"
           .value=${this.separator}
@@ -830,17 +1035,21 @@ export class HekateGenerator extends LitElement {
             if (value !== undefined) this.separator = value;
           }}
         >
-          ${SEPARATORS.map(
-            (value) =>
-              html`<hekate-wa-radio appearance="button" value=${value}
-                >${t(SEPARATOR_MESSAGE[value])}</hekate-wa-radio
-              >`,
+          ${SEPARATORS.map((value) =>
+            this.#renderExampleRadio(value, SEPARATOR_EXAMPLE[value], t(SEPARATOR_MESSAGE[value])),
           )}
         </hekate-wa-radio-group>
+        ${this.#renderCaption(
+          SEPARATORS.map((value) => ({
+            name: t(SEPARATOR_MESSAGE[value]),
+            selected: value === this.separator,
+          })),
+        )}
       </div>
-      <div class="option-group">
+      <div class="option-group wide">
         <hekate-wa-radio-group
           part="capitalization"
+          class="word-segments capitalization-segments"
           label=${t("capitalization.label")}
           orientation="horizontal"
           .value=${this.capitalization}
@@ -849,13 +1058,20 @@ export class HekateGenerator extends LitElement {
             if (value !== undefined) this.capitalization = value;
           }}
         >
-          ${CAPITALIZATIONS.map(
-            (value) =>
-              html`<hekate-wa-radio appearance="button" value=${value}
-                >${t(`capitalization.${value}`)}</hekate-wa-radio
-              >`,
+          ${CAPITALIZATIONS.map((value) =>
+            this.#renderExampleRadio(
+              value,
+              CAPITALIZATION_EXAMPLE[value],
+              t(`capitalization.${value}`),
+            ),
           )}
         </hekate-wa-radio-group>
+        ${this.#renderCaption(
+          CAPITALIZATIONS.map((value) => ({
+            name: t(`capitalization.${value}`),
+            selected: value === this.capitalization,
+          })),
+        )}
       </div>
       <div class="switches wide">
         <hekate-wa-switch
@@ -912,7 +1128,16 @@ export class HekateGenerator extends LitElement {
         ></hekate-wa-slider>
         <span class="slider-value" part="length-value">${t("length.value", { count: shown })}</span>
       </div>
-      <div class="checks wide" part="charsets" role="group" aria-label=${t("charsets.label")}>
+      <div class="option-group wide">
+        <span class="group-label" id="charsets-label">${t("charsets.label")}</span>
+        <span class="group-hint" id="charsets-hint">${t("charsets.hint")}</span>
+        <div
+          class="checks"
+          part="charsets"
+          role="group"
+          aria-labelledby="charsets-label"
+          aria-describedby="charsets-hint"
+        >
         ${repeat(
           CHARSETS,
           (set) => set,
@@ -925,6 +1150,7 @@ export class HekateGenerator extends LitElement {
               >${t(`charset.${set}`)}</hekate-wa-checkbox
             >`,
         )}
+        </div>
       </div>
       <div class="switches wide">
         <hekate-wa-switch
