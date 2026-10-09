@@ -26,7 +26,10 @@ async function uiTexts(page: Page, exclude: string[]): Promise<string[]> {
       const visit = (scope: ShadowRoot | Element): void => {
         for (const element of scope.querySelectorAll("*")) {
           if (skip.some((selector) => element.closest(selector))) continue;
+          // The example letters are data. The radio label with them has its own test.
+          const hasExample = element.querySelector(":scope > .option-example") !== null;
           for (const attribute of ["label", "aria-label", "title", "placeholder"]) {
+            if (hasExample && attribute === "aria-label") continue;
             const value = element.getAttribute(attribute);
             if (value) texts.push(value);
           }
@@ -58,6 +61,7 @@ function englishLeft(texts: string[]): string[] {
 
 // The language list (data), the Credits details (data) and the password itself are not UI text.
 const DATA = [
+  ".option-example",
   "[part=language]",
   "#password",
   ".credits ul",
@@ -76,7 +80,7 @@ test.describe("FR-70 message files", () => {
     expect(englishLeft(texts)).toEqual([]);
     // The pseudo text really is on the page.
     expect(texts).toContain(pseudoText("action.new"));
-    expect(texts).toContain(pseudoText("words.warning"));
+    expect(texts).toContain(pseudoText("strength.label"));
   });
 
   test("FR-70 with the pseudo-locale no English UI text remains in character mode", async ({
@@ -85,8 +89,53 @@ test.describe("FR-70 message files", () => {
     await openPlayground(page, { "ui-language": "qps", mode: "characters", length: "8" });
     await page.waitForTimeout(1500);
     const texts = await uiTexts(page, WITHOUT_DIALOG);
-    expect(texts).toContain(pseudoText("length.warning"));
+    expect(texts).toContain(pseudoText("length.label"));
     expect(englishLeft(texts)).toEqual([]);
+  });
+
+  test("FR-70 with the pseudo-locale the names, captions and labels of the separator and capital letters are translated", async ({
+    page,
+  }) => {
+    await openPlayground(page, { "ui-language": "qps" });
+    const examples = {
+      separator: { none: "ab", "-": "a-b", ".": "a.b", _: "a_b", space: "a b" },
+      capitalization: { lower: "abc", title: "Abc", random: "Abc abc" },
+    };
+    const names = {
+      separator: {
+        none: "separator.none",
+        "-": "separator.dash",
+        ".": "separator.dot",
+        _: "separator.underscore",
+        space: "separator.space",
+      },
+      capitalization: {
+        lower: "capitalization.lower",
+        title: "capitalization.title",
+        random: "capitalization.random",
+      },
+    };
+    for (const group of ["separator", "capitalization"] as const) {
+      await expect(part(page, group)).toHaveAttribute("label", pseudoText(`${group}.label`));
+      for (const [value, key] of Object.entries(names[group])) {
+        const example = (examples[group] as Record<string, string>)[value] ?? "";
+        await expect(
+          part(page, group).locator(`hekate-wa-radio[value="${value}"]`),
+        ).toHaveAttribute(
+          "aria-label",
+          pseudoText("option.exampleName", { example, name: pseudoText(key) }),
+        );
+      }
+      const captions = await part(page, group)
+        .locator("xpath=following-sibling::p[contains(@class,'option-caption')]")
+        .locator(".caption-choice")
+        .allTextContents();
+      expect(captions.map((text) => text.trim())).toEqual(
+        Object.values(names[group]).map((key) => pseudoText(key)),
+      );
+    }
+    await expect(part(page, "words")).toHaveAttribute("label", pseudoText("words.label"));
+    await expect(part(page, "words-value")).toHaveText(pseudoText("words.value", { count: 5 }));
   });
 
   test("FR-70 with the pseudo-locale no English UI text remains in the Credits dialog", async ({
@@ -196,6 +245,9 @@ test.describe("FR-72 numbers, plurals and times", () => {
     page,
   }) => {
     await openPlayground(page, { language: "en-US", "ui-language": "en" });
+    await expect(page.locator("#entropy")).toHaveText("64.6 bits of entropy");
+    await page.locator("#strength-info").click();
+    await expect(page.locator("#strength-details-title")).toBeVisible();
     await expect(page.locator("#crack-time")).toContainText("~45 years");
     await expect(page.locator("#entropy")).toHaveText("64.6 bits of entropy");
   });
@@ -233,6 +285,7 @@ test.describe("FR-73 layout for other languages", () => {
           words: "3",
           length: "8",
         });
+        await page.locator("hekate-generator").first().locator("#strength-info").click();
         await page.waitForTimeout(300);
         const report = await layoutReport(page);
         expect(report.textOverflow, "scrollWidth > clientWidth").toEqual([]);
@@ -248,10 +301,8 @@ test.describe("FR-73 layout for other languages", () => {
       const texts = typeof message === "string" ? [message] : Object.values(message);
       expect(texts.length, key).toBeGreaterThan(0);
     }
-    const english = englishText("words.warning");
-    expect(pseudoText("words.warning", { count: 3 }).length).toBeGreaterThanOrEqual(
-      english.length * 1.4,
-    );
+    const english = englishText("crack.note");
+    expect(pseudoText("crack.note").length).toBeGreaterThanOrEqual(english.length * 1.4);
   });
 });
 

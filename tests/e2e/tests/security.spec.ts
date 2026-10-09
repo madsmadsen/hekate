@@ -21,7 +21,9 @@ import {
   setProperty,
   waitForPassword,
   watchLiveRegion,
-  wordsRadio,
+  chooseCapitalization,
+  chooseSeparator,
+  chooseWords,
 } from "../support/component.ts";
 import {
   ASSET_ORIGIN,
@@ -43,16 +45,16 @@ async function useComponent(page: Page, options: { languages?: string[] } = {}):
   await read();
   await part(page, "new-password-button").click();
   await read();
-  await part(page, "separator").locator("hekate-wa-radio").nth(1).click();
+  await chooseSeparator(page, "-");
   await read();
-  await part(page, "capitalization").locator("hekate-wa-radio").nth(2).click();
+  await chooseCapitalization(page, "random");
   await read();
   await part(page, "number").click();
   await part(page, "symbol").click();
   await read();
-  await wordsRadio(page, 3).click();
+  await chooseWords(page, 3);
   await read();
-  await wordsRadio(page, 10).click();
+  await chooseWords(page, 10);
   await read();
   for (const language of options.languages ?? []) {
     await setProperty(page, "language", language);
@@ -440,7 +442,7 @@ test.describe("SR-9 live region", () => {
   }) => {
     await openPlayground(page);
     await watchLiveRegion(page);
-    await page.getByRole("radio", { name: "Hyphen (-)" }).click();
+    await chooseSeparator(page, "-");
     await expect.poll(() => liveHistory(page)).toContain(englishText("announce.passwordChanged"));
     await page.getByRole("radio", { name: "Characters" }).click();
     await expect.poll(() => liveHistory(page)).toContain("New password generated");
@@ -450,14 +452,12 @@ test.describe("SR-9 live region", () => {
     }
   });
 
-  test("SR-9 the copy message and the warnings go to the live region too", async ({ page }) => {
+  test("SR-9 the copy message goes to the live region", async ({ page }) => {
     await fakeClipboard(page);
     await openPlayground(page);
     await watchLiveRegion(page);
     await part(page, "copy-button").click();
     await expect.poll(() => liveHistory(page)).toContain(englishText("action.copied"));
-    await wordsRadio(page, 3).click();
-    await expect.poll(() => liveHistory(page)).toContain(englishText("words.warning"));
     const password = await readPassword(page);
     for (const text of await liveHistory(page)) expect(text).not.toContain(password);
   });
@@ -663,13 +663,9 @@ test.describe("FR-8 new password", () => {
       "new password again",
     );
     // FR-11: these four changes keep the words, so no call makes new words.
+    await expectCalls(() => chooseSeparator(page, "-"), sameWords, "separator");
     await expectCalls(
-      () => page.getByRole("radio", { name: "Hyphen (-)" }).click(),
-      sameWords,
-      "separator",
-    );
-    await expectCalls(
-      () => page.getByRole("radio", { name: "Random" }).click(),
+      () => chooseCapitalization(page, "random"),
       sameWords,
       "capital letters",
       false,
@@ -677,7 +673,7 @@ test.describe("FR-8 new password", () => {
     await expectCalls(() => part(page, "number").click(), sameWords, "number");
     await expectCalls(() => part(page, "symbol").click(), sameWords, "symbol");
     await expectCalls(() => part(page, "ascii-only").click(), newWords, "ASCII-only");
-    await expectCalls(() => wordsRadio(page, 6).click(), newWords, "number of words");
+    await expectCalls(() => chooseWords(page, 6), newWords, "number of words");
     await expectCalls(
       () => setProperty(page, "language", languageCodes.at(-1) ?? "en-US"),
       newWords,

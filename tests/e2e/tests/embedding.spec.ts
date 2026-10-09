@@ -8,7 +8,7 @@ import {
   readPassword,
   readState,
   waitForPassword,
-  wordsRadio,
+  chooseWords,
   type HekateElement,
 } from "../support/component.ts";
 import { servePage } from "../support/browser.ts";
@@ -302,7 +302,7 @@ test.describe("FR-42 start options", () => {
     ] as const) {
       await openPlayground(page, { words: value });
       expect((await readState(page)).words).toBe(words);
-      await expect(wordsRadio(page, words)).toBeChecked();
+      await expect(part(page, "words")).toHaveJSProperty("value", words);
     }
     for (const [value, length] of [
       ["8", 8],
@@ -321,7 +321,7 @@ test.describe("FR-42 start options", () => {
   test("FR-42 the user can still change all options in the UI", async ({ page }) => {
     await openPlayground(page, { words: "7", separator: "-", number: "true", theme: "dark" });
     expect(await readState(page)).toMatchObject({ words: 7, separator: "-", number: true });
-    await wordsRadio(page, 3).click();
+    await chooseWords(page, 3);
     await expect.poll(async () => (await readState(page)).words).toBe(3);
     await part(page, "number").click();
     await expect.poll(async () => (await readState(page)).number).toBe(false);

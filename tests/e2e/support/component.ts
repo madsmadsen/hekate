@@ -80,9 +80,53 @@ export function part(page: Page, name: string, index = 0): Locator {
   return page.locator("hekate-generator").nth(index).locator(`[part="${name}"]`);
 }
 
-/** The radio button for a number of words (FR-3), for example `wordsRadio(page, 6)`. */
-export function wordsRadio(page: Page, count: number, index = 0): Locator {
-  return part(page, "words", index).getByRole("radio", { name: String(count), exact: true });
+/** Chooses an option of the language select, the way a user does, and checks the value. */
+export async function choose(
+  page: Page,
+  name: "language",
+  value: string,
+  index = 0,
+): Promise<void> {
+  const select = part(page, name, index);
+  await select.click();
+  await select.locator(`hekate-wa-option[value="${value}"]`).click();
+  await expect(select).toHaveJSProperty("value", value);
+}
+
+/** The number of words (FR-3): one click on the track of the slider, where the number is. */
+export async function chooseWords(page: Page, count: number, index = 0): Promise<void> {
+  const slider = part(page, "words", index);
+  await slider.scrollIntoViewIfNeeded();
+  const box = await slider.evaluate((element) => {
+    const track = element.shadowRoot?.querySelector("[part~=track]") as HTMLElement;
+    const rect = track.getBoundingClientRect();
+    return { left: rect.left, width: rect.width, top: rect.top, height: rect.height };
+  });
+  const x = box.left + ((count - 3) / 7) * box.width;
+  await page.mouse.click(x, box.top + box.height / 2);
+  await expect(slider).toHaveJSProperty("value", count);
+}
+
+/** A radio button of the separator or capital letters group, by value. */
+export function segment(
+  page: Page,
+  name: "separator" | "capitalization",
+  value: string,
+  index = 0,
+): Locator {
+  return part(page, name, index).locator(`hekate-wa-radio[value="${value}"]`);
+}
+
+/** Chooses a separator with one click: none, -, ., _ or space. */
+export async function chooseSeparator(page: Page, value: string, index = 0): Promise<void> {
+  await segment(page, "separator", value, index).click();
+  await expect(part(page, "separator", index)).toHaveJSProperty("value", value);
+}
+
+/** Chooses the capital letters with one click: lower, title or random. */
+export async function chooseCapitalization(page: Page, value: string, index = 0): Promise<void> {
+  await segment(page, "capitalization", value, index).click();
+  await expect(part(page, "capitalization", index)).toHaveJSProperty("value", value);
 }
 
 /** The element that has the focus inside the shadow root of the component. */

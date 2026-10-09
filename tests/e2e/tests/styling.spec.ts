@@ -19,7 +19,7 @@ import {
   type HekateElement,
 } from "../support/component.ts";
 import { saveScreenshot } from "../support/files.ts";
-import { DEMO_ORIGIN, manifests, readWordlist, scriptUrl } from "../support/env.ts";
+import { DEMO_ORIGIN, scriptUrl } from "../support/env.ts";
 import { PARTS_FROM_README, PROPERTIES_FROM_README } from "../support/readme.ts";
 import { layoutReport } from "../support/layout.ts";
 import { WA_PREFIX, WA_TAGS, serveWebAwesome, waAvailable } from "../support/wa.ts";
@@ -219,6 +219,14 @@ const PROPERTY_CASES: PropertyCase[] = [
     expected: "rgb(13, 14, 15)",
   },
   {
+    name: "--hekate-color-on-brand",
+    value: "rgb(40, 41, 42)",
+    read:
+      "const button = root.querySelector('[part=new-password-button]');" +
+      "return getComputedStyle(button.shadowRoot.querySelector('[part~=base]')).color",
+    expected: "rgb(40, 41, 42)",
+  },
+  {
     name: "--hekate-color-separator",
     value: "rgb(16, 17, 18)",
     attributes: { separator: "-" },
@@ -341,9 +349,6 @@ test.describe("FR-47 look and feel", () => {
       (name) =>
         `hekate-generator::part(${name}) { outline-color: rgb(${indexOf.get(name)}, 120, 200); }`,
     ).join("\n");
-    const accented = manifests.find((m) =>
-      readWordlist(m.code, false).some((w) => /\P{ASCII}/u.test(w)),
-    );
     const page_html = (attributes: string) =>
       `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>${rules}</style></head><body>` +
       `<script type="module" src="${scriptUrl}"></script><hekate-generator ${attributes}></hekate-generator></body></html>`;
@@ -368,31 +373,27 @@ test.describe("FR-47 look and feel", () => {
         found.set(name, [...(found.get(name) ?? []), ...colors]);
     };
 
-    // State 1: word mode, with a number, a symbol, separators, 3 words (warning), a copy message.
+    // State 1: word mode, with a number, a symbol, separators, 3 words, a copy message.
     await servePage(
       page,
       `${DEMO_ORIGIN}/__e2e/parts-words.html`,
-      page_html(
-        `${accented ? `language="${accented.code}"` : ""} words="3" separator="-" number="true" symbol="true"`,
-      ),
+      page_html(`words="3" separator="-" number="true" symbol="true"`),
     );
     await page.goto("/__e2e/parts-words.html");
     await waitForPassword(page);
-    if (accented) {
-      for (let i = 0; i < 400 && (await page.locator("#ascii-note").count()) === 0; i++) {
-        await part(page, "new-password-button").click();
-      }
-    }
     await part(page, "copy-button").click();
     await expect(part(page, "copy-status")).toHaveText("Copied");
     await collect();
+    // The strength parts are inside the popover, so open it.
+    await page.locator("#strength-info").click();
+    await expect(page.locator("#strength-details-title")).toBeVisible();
+    await collect();
 
-    // State 2: character mode with a short length (warning) and all character sets.
+    // State 2: character mode with a short length and all character sets.
     await setProperty(page, "mode", "characters");
     await setProperty(page, "length", 64);
     await collect();
     await setProperty(page, "length", 8);
-    await expect(page.locator("#length-warning")).toBeVisible();
     await collect();
     await setProperty(page, "avoidSimilar", true);
     await collect();
@@ -412,12 +413,7 @@ test.describe("FR-47 look and feel", () => {
     await collect();
 
     const missing = PARTS_FROM_README.filter((name) => !found.has(name));
-    // The ascii note needs a language with letters outside ASCII.
-    const optional = accented ? [] : ["ascii-note"];
-    expect(
-      missing.filter((name) => !optional.includes(name)),
-      "parts not found in any state",
-    ).toEqual([]);
+    expect(missing, "parts not found in any state").toEqual([]);
     for (const [name, colors] of found) {
       const expected = `rgb(${indexOf.get(name)}, 120, 200)`;
       for (const color of colors) expect(color, `part ${name}`).toBe(expected);

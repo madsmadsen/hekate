@@ -4,13 +4,11 @@ import { countRandom, randomCounts, removeRandom, seedRandom } from "../support/
 import {
   generateMany,
   generateManyWords,
-  liveHistory,
   openPlayground,
   part,
   readPassword,
   readState,
   setProperty,
-  watchLiveRegion,
 } from "../support/component.ts";
 import { englishText, readWordlist } from "../support/env.ts";
 import { characterEntropy, chiSquareUniform } from "../support/maths.ts";
@@ -86,25 +84,6 @@ test.describe("FR-61 length", () => {
       await expect.poll(async () => (await readState(page)).length).toBe(expected);
       expect(Array.from(await readPassword(page))).toHaveLength(expected);
     }
-  });
-
-  test("FR-61 with 11 characters the warning shows, with 12 it does not, and the live region announces it", async ({
-    page,
-  }) => {
-    await openPlayground(page, { mode: "characters" });
-    await watchLiveRegion(page);
-    const warning = page.locator("#length-warning");
-    await expect(warning).toHaveCount(0);
-    await page.locator(slider).focus();
-    await page.keyboard.press("Home");
-    for (let i = 0; i < 3; i++) await page.keyboard.press("ArrowRight");
-    await expect.poll(async () => (await readState(page)).length).toBe(11);
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(englishText("length.warning"));
-    await expect.poll(() => liveHistory(page)).toContain(englishText("length.warning"));
-    await page.keyboard.press("ArrowRight");
-    await expect.poll(async () => (await readState(page)).length).toBe(12);
-    await expect(warning).toHaveCount(0);
   });
 });
 

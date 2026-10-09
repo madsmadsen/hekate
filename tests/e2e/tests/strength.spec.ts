@@ -24,7 +24,32 @@ async function shownBits(page: Page): Promise<number> {
   return Number(/([\d.]+)/.exec(text)?.[1]);
 }
 
+/** Opens the strength popover, so that its text is visible. */
+async function openDetails(page: Page): Promise<void> {
+  await page.locator("#strength-info").click();
+  await expect(page.locator("#strength-details-title")).toBeVisible();
+}
+
 const enUs = manifests.find((m) => m.code === "en-US");
+
+test.describe("FR-20 entropy", () => {
+  test("FR-20 the entropy stays visible while the details are closed or open", async ({ page }) => {
+    await openPlayground(page, { language: "en-US" });
+    const entropy = page.locator("#entropy");
+    await expect(page.locator("#strength-details-title")).toBeHidden();
+    await expect(entropy).toBeVisible();
+    await expect(entropy).toHaveText(/^[\d.,]+ bits of entropy$/);
+    const closed = await shownBits(page);
+    // The entropy sits outside the panel and before the info button.
+    expect(await entropy.evaluate((node) => node.closest("#strength-details") === null)).toBe(true);
+    await openDetails(page);
+    await expect(entropy).toBeVisible();
+    expect(await shownBits(page)).toBe(closed);
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#strength-details-title")).toBeHidden();
+    await expect(entropy).toBeVisible();
+  });
+});
 
 test.describe("FR-21 time to crack", () => {
   test("FR-21 5 words from the en-US list show the time of the PRD example", async ({ page }) => {
@@ -32,6 +57,7 @@ test.describe("FR-21 time to crack", () => {
     await openPlayground(page, { language: "en-US" });
     const size = readWordlist("en-US", false).length;
     const bits = wordEntropy({ size, words: 5 });
+    await openDetails(page);
     const shown = await page.locator("#crack-time").textContent();
     expect(shown?.trim()).toBe(englishText("crack.label").replace("{time}", crackTimeText(bits)));
     if (size === 7776) {
@@ -44,14 +70,18 @@ test.describe("FR-21 time to crack", () => {
     // 9 digits are 29.9 bits, the nearest value to 30 bits that the options can make.
     await openPlayground(page, { mode: "characters", length: "9", charsets: "digits" });
     expect(Math.abs((await shownBits(page)) - 29.9)).toBeLessThanOrEqual(0.06);
-    await expect(page.locator("#crack-time")).toHaveText("Time to crack: less than 1 second");
+    await openDetails(page);
+    await expect(page.locator("#crack-time")).toHaveText(
+      "Estimated time to crack: less than 1 second",
+    );
   });
 
   test("FR-21 the note text is present", async ({ page }) => {
     await openPlayground(page);
+    await openDetails(page);
     await expect(page.locator("[part=crack-note]")).toHaveText(englishText("crack.note"));
     expect(englishText("crack.note")).toBe(
-      "The time assumes an attacker who makes 10 billion guesses per second.",
+      "This is an average estimate. It assumes an attacker who has the stored password data and makes 10 billion guesses per second.",
     );
   });
 
@@ -59,6 +89,7 @@ test.describe("FR-21 time to crack", () => {
     page,
   }) => {
     await openPlayground(page, { mode: "characters" });
+    await openDetails(page);
     const sets: Array<Array<keyof typeof SET_SIZE>> = [
       ["digits"],
       ["lower", "digits"],
@@ -88,6 +119,7 @@ test.describe("FR-20 what the attacker knows", () => {
     const manifest = manifests.find((m) => m.code === "en-US") ?? manifests[0];
     test.skip(!manifest, "no word list");
     await openPlayground(page, { language: manifest?.code ?? "en-US" });
+    await openDetails(page);
     await expect(page.locator("#strength-note")).toHaveText(
       englishText("strength.assumeWords").replace("{language}", manifest?.name ?? ""),
     );
@@ -118,6 +150,7 @@ test.describe("FR-24 attacker who knows nothing", () => {
         .replace("{strength}", strengthLabel(bits))
         .replace("{entropy}", entropy)
         .replace("{time}", crackTimeText(bits));
+      await openDetails(page);
       await expect(page.locator("#naive-strength")).toHaveText(expected);
       // The bar and the main label keep the safe estimate of FR-20.
       expect(await shownBits(page)).toBeLessThan(bits);

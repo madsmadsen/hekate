@@ -9,12 +9,12 @@ import {
   readState,
   selectedLanguage,
   waitForPassword,
-  watchLiveRegion,
-  liveHistory,
-  wordsRadio,
+  chooseCapitalization,
+  chooseSeparator,
+  chooseWords,
 } from "../support/component.ts";
 import { instrumentWasm, setBrowserLanguages, wasmCalls } from "../support/browser.ts";
-import { englishText, languageCodes, manifests, readWordlist } from "../support/env.ts";
+import { languageCodes, manifests, readWordlist } from "../support/env.ts";
 import { wordEntropy } from "../support/maths.ts";
 import { recordRequests, wordlistRequests } from "../support/network.ts";
 import { FR2_LISTS, TABLE_5_1 } from "../support/table51.ts";
@@ -96,45 +96,31 @@ test.describe("FR-2 default language", () => {
 });
 
 test.describe("FR-3 number of words", () => {
-  test("FR-3 the control is a group of 8 radio buttons with the values 3 to 10", async ({
-    page,
-  }) => {
+  test("FR-3 the control is a slider with the numbers 3 to 10", async ({ page }) => {
     await openPlayground(page);
     expect(await readState(page)).toMatchObject({ words: 5 });
-    const radios = part(page, "words").getByRole("radio");
-    await expect(radios).toHaveCount(8);
-    for (let index = 0; index < 8; index++) {
-      await expect(radios.nth(index)).toHaveAccessibleName(String(index + 3));
-    }
-    await expect(wordsRadio(page, 5)).toBeChecked();
-    await wordsRadio(page, 3).click();
+    const slider = part(page, "words");
+    await expect(slider).toHaveJSProperty("value", 5);
+    await expect(slider).toHaveJSProperty("min", 3);
+    await expect(slider).toHaveJSProperty("max", 10);
+    await expect(slider.locator(".word-reference")).toHaveText([
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+    ]);
+    await expect(part(page, "words-value")).toHaveText("5 words");
+    await chooseWords(page, 3);
     await expect.poll(async () => (await readState(page)).words).toBe(3);
-    await expect(wordsRadio(page, 3)).toBeChecked();
-    await wordsRadio(page, 10).click();
+    await expect(part(page, "words-value")).toHaveText("3 words");
+    await chooseWords(page, 10);
     await expect.poll(async () => (await readState(page)).words).toBe(10);
-    await expect(wordsRadio(page, 10)).toBeChecked();
+    await expect(part(page, "words-value")).toHaveText("10 words");
     expect((await readPassword(page)).match(/\p{Lu}/gu)).toHaveLength(10);
-  });
-
-  test("FR-3 with 3 words the warning shows, with 4 words it does not, and the live region announces it", async ({
-    page,
-  }) => {
-    await openPlayground(page);
-    await watchLiveRegion(page);
-    const warning = page.locator("#words-warning");
-    await expect(warning).toHaveCount(0);
-    await wordsRadio(page, 3).click();
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(englishText("words.warning"));
-    await expect.poll(() => liveHistory(page)).toContain(englishText("words.warning"));
-    await wordsRadio(page, 4).click();
-    await expect(warning).toHaveCount(0);
-    expect((await readState(page)).words).toBe(4);
-  });
-
-  test("FR-3 the attribute words=3 shows the warning from the start", async ({ page }) => {
-    await openPlayground(page, { words: "3" });
-    await expect(page.locator("#words-warning")).toHaveText(englishText("words.warning"));
   });
 });
 
@@ -152,8 +138,8 @@ test.describe("FR-11 keep the words", () => {
     expect(before).not.toBe("");
     expect(await named("drawWords")).toBe(1);
     const actions: Array<[string, () => Promise<void>]> = [
-      ["separator", () => page.getByRole("radio", { name: "Hyphen (-)" }).click()],
-      ["capital letters", () => page.getByRole("radio", { name: "Random" }).click()],
+      ["separator", () => chooseSeparator(page, "-")],
+      ["capital letters", () => chooseCapitalization(page, "random")],
       ["number", () => part(page, "number").click()],
       ["symbol", () => part(page, "symbol").click()],
     ];

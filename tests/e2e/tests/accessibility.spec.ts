@@ -19,7 +19,6 @@ import {
   selectedLanguage,
   selectedText,
   waitForPassword,
-  wordsRadio,
 } from "../support/component.ts";
 import { clipboardWrites } from "../support/browser.ts";
 import { DEMO_ORIGIN, languageCodes } from "../support/env.ts";
@@ -56,17 +55,15 @@ test.describe("NFR-3 axe", () => {
     });
   }
 
-  test("NFR-3 axe reports no violation with the warning, the ASCII note and the copy message", async ({
-    page,
-  }) => {
+  test("NFR-3 axe reports no violation with the strength popover open", async ({ page }) => {
     await fakeClipboard(page);
-    await openPlayground(page, {
-      words: "3",
-      language: languageCodes.includes("de") ? "de" : "en-US",
-    });
+    await openPlayground(page);
     await part(page, "copy-button").click();
     await expect(part(page, "copy-status")).toHaveText("Copied");
-    expect(await axeViolations(page)).toEqual([]);
+    await page.locator("#strength-info").click();
+    await expect(page.locator("#strength-details-title")).toBeVisible();
+    // The popover fades in. axe reads the colours, so wait until the animation has ended.
+    await expect.poll(() => axeViolations(page), { timeout: 5000 }).toEqual([]);
   });
 
   test("NFR-3 axe reports no violation with the error callout", async ({ page }) => {
@@ -93,12 +90,16 @@ test.describe("NFR-3 labels of PRD 8.4", () => {
     await expect(page.getByRole("button", { name: "Copy password", exact: true })).toBeVisible();
     await expect(page.getByRole("radiogroup", { name: "Password type" })).toBeVisible();
     await expect(page.getByRole("combobox", { name: "Word language" })).toBeVisible();
-    await expect(page.getByRole("radiogroup", { name: "Number of words" })).toBeVisible();
+    await expect(page.getByRole("slider", { name: "Number of words" })).toBeVisible();
     await expect(page.getByRole("radiogroup", { name: "Separator" })).toBeVisible();
     await expect(page.getByRole("radiogroup", { name: "Capital letters" })).toBeVisible();
+    await expect(page.getByRole("radio", { name: "a-b, Hyphen (-)" })).toBeVisible();
+    await expect(page.getByRole("radio", { name: "Abc abc, Random" })).toBeVisible();
     await expect(page.getByRole("switch", { name: "Add a number" })).toBeVisible();
     await expect(page.getByRole("switch", { name: "Add a symbol" })).toBeVisible();
-    await expect(page.getByRole("switch", { name: "ASCII-only" })).toBeVisible();
+    await expect(
+      page.getByRole("switch", { name: "Basic English letters only (ASCII)" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("switch", { name: /No same character twice in a row/ }),
     ).toBeVisible();
@@ -115,7 +116,11 @@ test.describe("NFR-3 labels of PRD 8.4", () => {
     await expect(
       page.getByRole("switch", { name: /No same character twice in a row/ }),
     ).toBeVisible();
-    await expect(page.getByRole("group", { name: "Character sets" })).toBeVisible();
+    const charsets = page.getByRole("group", { name: "Character sets" });
+    await expect(charsets).toBeVisible();
+    await expect(charsets).toHaveAttribute("aria-labelledby", "charsets-label");
+    await expect(charsets).not.toHaveAttribute("aria-label", /.*/);
+    await expect(page.locator("#charsets-label")).toHaveText("Character sets");
   });
 });
 
@@ -145,19 +150,23 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     await openPlayground(page);
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     const seen: Array<{ role: string; label: string }> = [];
-    for (let i = 0; i < 13; i++) {
+    for (let i = 0; i < 15; i++) {
       await page.keyboard.press("Tab");
       seen.push(await deepFocus(page));
     }
-    // The order of the page: field, 2 buttons, mode, language, number of words, separator, capital
-    // letters, 4 switches and the Credits link. A radio group has one stop: its checked radio.
+    // The order of the page: field, 2 buttons, the strength info button, the Close button of the
+    // strength panel (the keyboard focus on the info button opens it), mode, language, number of
+    // words, separator, capital letters, 4 switches and the Credits link. A radio group has one
+    // stop: its checked radio. The words slider has one stop.
     expect(seen.map((s) => s.role)).toEqual([
       "textbox",
       "button",
       "button",
+      "button",
+      "button",
       "radio",
       "combobox",
-      "radio",
+      "slider",
       "radio",
       "radio",
       "switch",
@@ -168,7 +177,109 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     ]);
     expect(seen[1]?.label).toContain("New password");
     expect(seen[2]?.label).toContain("Copy");
-    expect(seen[12]?.label).toContain("credits-link");
+    expect(seen[3]?.label).toContain("About password strength");
+    expect(seen[14]?.label).toContain("credits-link");
+  });
+
+  /** Moves the focus to the info button with the Tab key, so that the focus ring shows. */
+  async function tabToInfo(page: Page): Promise<void> {
+    await part(page, "copy-button").focus();
+    await page.keyboard.press("Tab");
+    await expect.poll(() => focusedId(page)).toBe("strength-info");
+  }
+
+  test("NFR-3 strength info: the keyboard focus opens the panel, the focus stays on the button", async ({
+    page,
+  }) => {
+    await openPlayground(page);
+    const info = page.locator("#strength-info");
+    await expect(info).toHaveAttribute("aria-expanded", "false");
+    await tabToInfo(page);
+    await expect(info).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator("#strength-details-title")).toBeVisible();
+    expect(await focusedId(page)).toBe("strength-info");
+    // Tab goes to Close. Tab out of the panel closes it.
+    await page.keyboard.press("Tab");
+    await expect.poll(() => focusedId(page)).toBe("strength-details-close");
+    await expect(info).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("Tab");
+    await expect(info).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator("#strength-details-title")).toBeHidden();
+  });
+
+  test("NFR-3 strength info: Enter or Space pins the panel and focuses the heading; Escape and Close close it and focus the button", async ({
+    page,
+  }) => {
+    await openPlayground(page);
+    const info = page.locator("#strength-info");
+    const heading = page.locator("#strength-details-title");
+    for (const key of ["Enter", "Space"]) {
+      await tabToInfo(page);
+      await page.keyboard.press(key);
+      await expect(info).toHaveAttribute("aria-expanded", "true");
+      await expect(heading).toBeVisible();
+      await expect.poll(() => focusedId(page)).toBe("strength-details-title");
+      await page.keyboard.press("Escape");
+      await expect(info).toHaveAttribute("aria-expanded", "false");
+      await expect(heading).toBeHidden();
+      await expect.poll(() => focusedId(page)).toBe("strength-info");
+      // The focus is still on the button, and the panel does not open again.
+      await page.waitForTimeout(400);
+      await expect(info).toHaveAttribute("aria-expanded", "false");
+    }
+    await tabToInfo(page);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => focusedId(page)).toBe("strength-details-title");
+    await page.locator("#strength-details-close").click();
+    await expect(info).toHaveAttribute("aria-expanded", "false");
+    await expect(heading).toBeHidden();
+    await expect.poll(() => focusedId(page)).toBe("strength-info");
+  });
+
+  test("NFR-3 strength info: a click opens and pins the panel, a second click closes it", async ({
+    page,
+  }) => {
+    await openPlayground(page);
+    const info = page.locator("#strength-info");
+    const heading = page.locator("#strength-details-title");
+    await info.click();
+    await expect(info).toHaveAttribute("aria-expanded", "true");
+    await expect.poll(() => focusedId(page)).toBe("strength-details-title");
+    // A pinned panel stays open when the pointer leaves.
+    await page.mouse.move(2, 2);
+    await page.waitForTimeout(500);
+    await expect(info).toHaveAttribute("aria-expanded", "true");
+    await info.click();
+    await expect(info).toHaveAttribute("aria-expanded", "false");
+    await expect(heading).toBeHidden();
+    await expect.poll(() => focusedId(page)).toBe("strength-info");
+  });
+
+  test("NFR-3 strength info: the pointer opens the panel without moving the focus, and closes it when it leaves", async ({
+    page,
+  }) => {
+    await openPlayground(page);
+    const info = page.locator("#strength-info");
+    await part(page, "copy-button").focus();
+    const before = await focusedId(page);
+    expect(before).not.toBeNull();
+    await info.hover();
+    await expect.poll(() => info.getAttribute("aria-expanded")).toBe("true");
+    await expect(page.locator("#strength-details-title")).toBeVisible();
+    expect(await focusedId(page)).toBe(before);
+    // Escape closes it, and it stays closed while the pointer stays.
+    await page.keyboard.press("Escape");
+    await expect(info).toHaveAttribute("aria-expanded", "false");
+    await page.waitForTimeout(500);
+    await expect(info).toHaveAttribute("aria-expanded", "false");
+    // The pointer leaves. Then it can open the panel again.
+    await page.mouse.move(2, 2);
+    await page.waitForTimeout(400);
+    await info.hover();
+    await expect.poll(() => info.getAttribute("aria-expanded")).toBe("true");
+    await page.mouse.move(2, 2);
+    await expect.poll(() => info.getAttribute("aria-expanded")).toBe("false");
+    expect(await focusedId(page)).toBe(before);
   });
 
   test("NFR-3 password field: Tab moves the focus to the field and the user can select the text", async ({
@@ -242,28 +353,33 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     expect((await readState(page)).language).toBe(await selectedLanguage(page));
   });
 
-  test("NFR-3 number of words: the arrow keys select a number", async ({ page }) => {
+  test("NFR-3 number of words: Arrow keys, Home and End change the slider", async ({ page }) => {
     await openPlayground(page);
-    await wordsRadio(page, 5).focus();
+    const slider = page.getByRole("slider", { name: "Number of words" });
+    await slider.focus();
     const words = async () => (await readState(page)).words;
     await page.keyboard.press("ArrowRight");
     await expect.poll(words).toBe(6);
-    await expect(wordsRadio(page, 6)).toBeChecked();
     await page.keyboard.press("ArrowLeft");
     await page.keyboard.press("ArrowLeft");
     await expect.poll(words).toBe(4);
+    await page.keyboard.press("End");
+    await expect.poll(words).toBe(10);
+    await page.keyboard.press("Home");
+    await expect.poll(words).toBe(3);
+    await expect(part(page, "words-value")).toHaveText("3 words");
   });
 
   test("NFR-3 separator and capital letters: the arrow keys select a value", async ({ page }) => {
     await openPlayground(page);
-    await page.getByRole("radio", { name: "None" }).focus();
+    await page.getByRole("radio", { name: "ab, None" }).focus();
     await page.keyboard.press("ArrowRight");
     await expect.poll(async () => (await readState(page)).separator).toBe("-");
     await page.keyboard.press("ArrowRight");
     await expect.poll(async () => (await readState(page)).separator).toBe(".");
     await page.keyboard.press("ArrowLeft");
     await expect.poll(async () => (await readState(page)).separator).toBe("-");
-    await page.getByRole("radio", { name: "Title case" }).focus();
+    await page.getByRole("radio", { name: "Abc, Title case" }).focus();
     await page.keyboard.press("ArrowRight");
     await expect.poll(async () => (await readState(page)).capitalization).toBe("random");
     await page.keyboard.press("ArrowLeft");
@@ -278,7 +394,7 @@ test.describe("NFR-3 keyboard actions of PRD 8.4", () => {
     for (const [name, key] of [
       ["Add a number", "number"],
       ["Add a symbol", "symbol"],
-      ["ASCII-only", "asciiOnly"],
+      ["Basic English letters only (ASCII)", "asciiOnly"],
       ["No same character twice in a row", "noRepeat"],
     ] as const) {
       await page.getByRole("switch", { name }).focus();

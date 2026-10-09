@@ -23,7 +23,8 @@ export async function layoutReport(page: Page): Promise<LayoutReport> {
       const box = base.getBoundingClientRect();
       const textOverflow: string[] = [];
       const outside: string[] = [];
-      const visit = (scope: ShadowRoot | Element): void => {
+      // The strength panel floats above the page. Its box is no part of the layout of the component.
+      const visit = (scope: ShadowRoot | Element, floating = false): void => {
         for (const element of scope.querySelectorAll("*")) {
           if (element.closest("[part=live-region]")) continue;
           const html = element as HTMLElement;
@@ -39,11 +40,19 @@ export async function layoutReport(page: Page): Promise<LayoutReport> {
                 `${html.tagName.toLowerCase()}: ${(html.textContent ?? "").trim().slice(0, 40)}`,
               );
             }
-            if (rect.left < box.left - 1 || rect.right > box.right + 1) {
+            const inPopover =
+              floating ||
+              element.closest("hekate-wa-popup, hekate-wa-popover, #strength-details") !== null;
+            if (!inPopover && (rect.left < box.left - 1 || rect.right > box.right + 1)) {
               outside.push(`${html.tagName.toLowerCase()}[${html.getAttribute("part") ?? ""}]`);
             }
           }
-          if (element.shadowRoot) visit(element.shadowRoot);
+          if (element.shadowRoot) {
+            visit(
+              element.shadowRoot,
+              floating || ["HEKATE-WA-POPOVER", "HEKATE-WA-POPUP"].includes(element.tagName),
+            );
+          }
         }
       };
       visit(root);
@@ -62,6 +71,7 @@ export async function layoutReport(page: Page): Promise<LayoutReport> {
         "[part=charset]",
         "[part=avoid-similar]",
         "[part=no-repeat]",
+        "#strength-info",
         "#credits-link",
         "#password",
       ];
